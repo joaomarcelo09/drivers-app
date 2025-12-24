@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response, Router } from 'express';
+import { createUser } from '../../services/user.service';
 
 const router = Router();
 
@@ -11,7 +12,7 @@ const router = Router();
  */
 router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const response = 'digitei aqui'
+    const response = await createUser();
     res.json({ response });
   } catch (error) {
     next(error);
