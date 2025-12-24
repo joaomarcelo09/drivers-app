@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
     "dev": "tsx --watch --env-file=.env src/index.ts",
     "prod": "tsx --watch --env-file=.env.production src/index.ts",
     "start": "node dist/index.js",
@@ -19,8 +21,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
     "cors": "^2.8.5",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
@@ -28,9 +33,11 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.3",
+    "@types/pg": "^8.16.0",
     "eslint": "^9.39.2",
     "eslint-plugin-perfectionist": "^5.1.0",
     "prettier": "^3.7.4",
+    "prisma": "catalog:prisma",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.50.1"

@@ -28,3 +28,7 @@ lerna-debug.log*
 
 # Test coverage
 /coverage
+
+/generated/prisma
+
+/generated/prisma
