@@ -1,44 +1,45 @@
-import { NextFunction, Request, Response, Router } from 'express';
-import { validateData } from '../../middleware/validationMiddleware';
-import { driverRegistrationSchema, instructorRegistrationSchema, userAuthResponseSchema, userLoginSchema } from '../../schemas/userSchema';
-import authMiddleware from '../../middleware/securityMiddleware';
-import { generateRefreshToken, generateToken, validateRefreshToken } from '../../utils/generateToken';
-import { createUser, getUser } from '../../services/user.service';
-import { comparePassword, hashPassword } from '../../utils/bcrypt';
-import { BAD_REQUEST } from 'http-status-codes';
-import HttpException from '../../models/http-exception.model';
+import { NextFunction, Request, Response, Router } from "express";
+import { validateData } from "../../middleware/validationMiddleware";
+import { driverRegistrationSchema, instructorRegistrationSchema, userAuthResponseSchema, userLoginSchema } from "../../schemas/userSchema";
+import authMiddleware from "../../middleware/securityMiddleware";
+import { generateRefreshToken, generateToken, validateRefreshToken } from "../../utils/generateToken";
+import { createUser, getUser } from "../../services/user.service";
+import { comparePassword, hashPassword } from "../../utils/bcrypt";
+import { BAD_REQUEST } from "http-status-codes";
+import HttpException from "../../models/http-exception.model";
 
 const router = Router();
+const isProduction = process.env.NODE_ENV === "production";
 
-router.post('/login', validateData(userLoginSchema), async (req: Request, res: Response, next: NextFunction) => {
+router.post("/login", validateData(userLoginSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-
     const where = {
       email: req.body.email,
-    } 
+    };
 
-    const user = await getUser(where)
+    const user = await getUser(where);
 
-    if(!user) {
-     throw new HttpException(BAD_REQUEST, 'Usuário inexistente', ) 
+    if (!user) {
+      throw new HttpException(BAD_REQUEST, "Usuário inexistente");
     }
 
-    if(! await comparePassword(req.body.password, user.password)) {
-      throw new HttpException(BAD_REQUEST, 'Senha incorreta', )
+    if (!(await comparePassword(req.body.password, user.password))) {
+      throw new HttpException(BAD_REQUEST, "Senha incorreta");
     }
 
     const accessToken = generateToken(user.id, user.name);
 
     const refresh_token = generateRefreshToken(user.id, user.name);
-    res.cookie('refresh_token', refresh_token, {
+    res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      path: '/auth/refresh-token',
+      secure: isProduction,
+      sameSite: "none",
+
+      path: "/",
       maxAge: 45 * 24 * 60 * 60 * 1000,
     });
 
-    const response = userAuthResponseSchema.parse({...user, accessToken})
+    const response = userAuthResponseSchema.parse({ ...user, accessToken });
 
     res.json({ ...response });
   } catch (error) {
@@ -46,40 +47,39 @@ router.post('/login', validateData(userLoginSchema), async (req: Request, res: R
   }
 });
 
-router.post('/register-driver', validateData(driverRegistrationSchema), async (req: Request, res: Response, next: NextFunction) => {
+router.post("/register-driver", validateData(driverRegistrationSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-
     const where = {
       email: req.body.email,
-    } 
+    };
 
-    const user = await getUser(where)
+    const user = await getUser(where);
 
-    if(user) {
-      throw new HttpException(BAD_REQUEST, 'Usuário existente com esse email', )
+    if (user) {
+      throw new HttpException(BAD_REQUEST, "Usuário existente com esse email");
     }
 
-    req.body.password = await hashPassword(req.body.password)
+    req.body.password = await hashPassword(req.body.password);
 
     const data = {
       ...driverRegistrationSchema.parse(req.body),
-      role: 'DRIVER' as "DRIVER" | "INSTRUCTOR"
-    }
+      role: "DRIVER" as "DRIVER" | "INSTRUCTOR",
+    };
 
-    const newUser = await createUser(data)
+    const newUser = await createUser(data);
 
     const accessToken = generateToken(newUser.id, newUser.name);
 
     const refresh_token = generateRefreshToken(newUser.id, newUser.name);
-    res.cookie('refresh_token', refresh_token, {
+    res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      path: '/auth/refresh-token',
+      secure: isProduction,
+      sameSite: "none",
+      path: "/",
       maxAge: 45 * 24 * 60 * 60 * 1000,
     });
 
-    const response = userAuthResponseSchema.parse({...newUser, accessToken})
+    const response = userAuthResponseSchema.parse({ ...newUser, accessToken });
 
     res.json({ ...response });
   } catch (error) {
@@ -87,77 +87,76 @@ router.post('/register-driver', validateData(driverRegistrationSchema), async (r
   }
 });
 
-router.post('/register-instructor', validateData(instructorRegistrationSchema), async (req: Request, res: Response, next: NextFunction) => {
+router.post("/register-instructor", validateData(instructorRegistrationSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-
     const where = {
       email: req.body.email,
-    } 
+    };
 
-    const user = await getUser(where)
+    const user = await getUser(where);
 
-    if(user) {
-      throw new HttpException(BAD_REQUEST, 'Usuário existente com esse email', )
+    if (user) {
+      throw new HttpException(BAD_REQUEST, "Usuário existente com esse email");
     }
 
-    req.body.password = await hashPassword(req.body.password)
+    req.body.password = await hashPassword(req.body.password);
     const data = {
       ...instructorRegistrationSchema.parse(req.body),
-      role: 'INSTRUCTOR' as "DRIVER" | "INSTRUCTOR"
-    }
+      role: "INSTRUCTOR" as "DRIVER" | "INSTRUCTOR",
+    };
 
-    const newUser = await createUser(data)
+    const newUser = await createUser(data);
 
     const accessToken = generateToken(newUser.id, newUser.name);
     const refresh_token = generateRefreshToken(newUser.id, newUser.name);
-    res.cookie('refresh_token', refresh_token, {
+    res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      path: '/auth/refresh-token',
+      secure: isProduction,
+      sameSite: "none",
+
+      path: "/",
       maxAge: 45 * 24 * 60 * 60 * 1000,
     });
 
-    const response = userAuthResponseSchema.parse({...newUser, accessToken})
+    const response = userAuthResponseSchema.parse({ ...newUser, accessToken });
 
-    res.json({ ...response });
+    res.json(response);
   } catch (error) {
     next(error);
   }
 });
 
-router.post('/refresh-token', async (req: Request, res: Response, next: NextFunction) => {
+router.post("/refresh-token", async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log(req.cookies);
 
-    console.log(req.cookies)
-
-    const refresh_token = req.cookies['refresh_token'];
+    const refresh_token = req.cookies["refresh_token"];
 
     if (!refresh_token) {
-      throw new Error('Refresh token não encontrado');
+      throw new Error("Refresh token não encontrado");
     }
 
     const { id, name } = validateRefreshToken(refresh_token);
 
-    if(!id || !name) {
-      throw new Error('Refresh token inválido');
+    if (!id || !name) {
+      throw new Error("Refresh token inválido");
     }
 
     const access_token = generateToken(id, name);
 
-    res.cookie('refresh_token', refresh_token, {
+    res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      path: '/auth/refresh-token',
+      secure: isProduction,
+      sameSite: "none",
+
+      path: "/",
       maxAge: 45 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({ access_token });
+    res.json(access_token);
   } catch (error) {
     next(error);
   }
 });
 
-export default Router().use('/auth', authMiddleware.optional, router);
-
+export default Router().use("/auth", authMiddleware.optional, router);
