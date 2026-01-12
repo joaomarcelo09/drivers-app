@@ -5,6 +5,8 @@ import authMiddleware from '../../middleware/securityMiddleware';
 import { generateRefreshToken, generateToken, validateRefreshToken } from '../../utils/generateToken';
 import { createUser, getUser } from '../../services/user.service';
 import { comparePassword, hashPassword } from '../../utils/bcrypt';
+import { BAD_REQUEST } from 'http-status-codes';
+import HttpException from '../../models/http-exception.model';
 
 const router = Router();
 
@@ -18,11 +20,11 @@ router.post('/login', validateData(userLoginSchema), async (req: Request, res: R
     const user = await getUser(where)
 
     if(!user) {
-      throw new Error('Usuário não encontrado')
+     throw new HttpException(BAD_REQUEST, 'Usuário inexistente', ) 
     }
 
-    if(!comparePassword(req.body.password, user.password)) {
-      throw new Error('Senha incorreta')
+    if(! await comparePassword(req.body.password, user.password)) {
+      throw new HttpException(BAD_REQUEST, 'Senha incorreta', )
     }
 
     const accessToken = generateToken(user.id, user.name);
@@ -54,7 +56,7 @@ router.post('/register-driver', validateData(driverRegistrationSchema), async (r
     const user = await getUser(where)
 
     if(user) {
-      throw new Error('Usuário existente com esse email')
+      throw new HttpException(BAD_REQUEST, 'Usuário existente com esse email', )
     }
 
     req.body.password = await hashPassword(req.body.password)
@@ -95,7 +97,7 @@ router.post('/register-instructor', validateData(instructorRegistrationSchema), 
     const user = await getUser(where)
 
     if(user) {
-      throw new Error('Usuário existente com esse email')
+      throw new HttpException(BAD_REQUEST, 'Usuário existente com esse email', )
     }
 
     req.body.password = await hashPassword(req.body.password)
