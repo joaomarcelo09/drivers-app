@@ -1,11 +1,31 @@
+import { UserWhereInput } from "../../generated/prisma/models"
+import { prisma } from "../database/client"
+import { createDriverRespository } from "../repositories/drivers.repository"
+import { createInstructorRespository } from "../repositories/instructor.repository"
 import { createUserRespository, getUserRepository } from "../repositories/user.repository"
-import { RegisterInput } from "../types/registerInput"
+import { UserRegisterInput } from "../types/registerInput"
 
-export const createUser = async (body: RegisterInput) => {
+export const createUser = async (body: UserRegisterInput) => {
 
-   return await createUserRespository(body)
+
+   const createdUser = await prisma.$transaction(async (tx) => {
+      const user = await createUserRespository(body, tx)
+
+      if(body.role === 'INSTRUCTOR') {
+         await createInstructorRespository(body, user.id,tx)
+      } 
+
+      if(body.role === 'DRIVER') {
+         await createDriverRespository(user.id, tx)
+      }
+
+      return user
+
+   })
+
+   return createdUser
 }
 
-export const getUser = async (where) => {
+export const getUser = async (where: UserWhereInput) => {
    return await getUserRepository(where)
 }

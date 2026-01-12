@@ -16,11 +16,11 @@ datasource db {
 model User {
   id          Int         @id @default(autoincrement())
   email       String      @unique
-  name        String?
+  name        String
   password    String
+  telephone   String      @default("")
   role        Role        @default(DRIVER)
   gender      Gender      @default(MALE)
-  coordinates String      @default("0,0")
   city        String      @default("")
   state       String      @default("")
   instructor  Instructor?
@@ -30,6 +30,7 @@ model User {
 model Instructor {
   id        Int     @id @default(autoincrement())
   priceHour Decimal
+  coordinates String      @default("0,0")
   bio       String
   active    Boolean
   userId    Int     @unique
@@ -42,9 +43,7 @@ model Driver {
   id               Int     @id @default(autoincrement())
   active           Boolean
   userId           Int     @unique
-  targetCategoryId Int
 
-  LicenseCategory LicenseCategory @relation(fields: [targetCategoryId], references: [id])
   user            User            @relation(fields: [userId], references: [id])
 }
 
@@ -52,7 +51,6 @@ model LicenseCategory {
   id                   Int                  @id @default(autoincrement())
   acronym              Category             @unique
   description          String
-  drivers              Driver[]
   instructorCategories InstructorCategory[]
 }
 

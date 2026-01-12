@@ -39,7 +39,12 @@ router.post('/register-driver', validateData(driverRegistrationSchema), async (r
 
     req.body.password = await hashPassword(req.body.password)
 
-    const newUser = await createUser(req.body)
+    const data = {
+      ...driverRegistrationSchema.parse(req.body),
+      role: 'DRIVER' as "DRIVER" | "INSTRUCTOR"
+    }
+
+    const newUser = await createUser(data)
 
     const accessToken = generateToken(newUser.id, newUser.name);
 
@@ -55,8 +60,12 @@ router.post('/register-instructor', validateData(instructorRegistrationSchema), 
   try {
 
     req.body.password = await hashPassword(req.body.password)
+    const data = {
+      ...instructorRegistrationSchema.parse(req.body),
+      role: 'INSTRUCTOR' as "DRIVER" | "INSTRUCTOR"
+    }
 
-    const newUser = await createUser(req.body)
+    const newUser = await createUser(data)
 
     const accessToken = generateToken(newUser.id, newUser.name);
 

@@ -1,15 +1,17 @@
-import { UserCreateInput, UserWhereInput } from "../../generated/prisma/models";
+import { Prisma } from "../../generated/prisma/client";
+import { UserWhereInput } from "../../generated/prisma/models";
 import { prisma } from "../database/client";
+import { UserRegisterInput } from "../types/registerInput";
 
-
-export const createUserRespository = async (body: UserCreateInput) => {
-  return await prisma.user.create({ data: { 
+export const createUserRespository = async (body: UserRegisterInput, tx?: Prisma.TransactionClient) => {
+  const prismaORM = tx || prisma
+  return await prismaORM.user.create({ data: { 
     name: body.name, 
     email: body.email, 
     password: body.password, 
+    telephone: body.telephone,
     role: body.role,
     gender: body.gender,
-    coordinates: body.coordinates,
     city: body.city,
     state: body.state
   } });
