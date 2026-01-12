@@ -26,6 +26,7 @@
     "@prisma/client": "^7.2.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.2.1",
     "express-jwt": "^8.5.1",

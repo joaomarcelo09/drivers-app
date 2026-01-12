@@ -30,7 +30,8 @@ model User {
 model Instructor {
   id        Int     @id @default(autoincrement())
   priceHour Decimal
-  coordinates String      @default("0,0")
+  latitude  Float?
+  longitude Float?
   bio       String
   active    Boolean
   userId    Int     @unique

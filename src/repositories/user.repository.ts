@@ -5,6 +5,7 @@ import { UserRegisterInput } from "../types/registerInput";
 
 export const createUserRespository = async (body: UserRegisterInput, tx?: Prisma.TransactionClient) => {
   const prismaORM = tx || prisma
+
   return await prismaORM.user.create({ data: { 
     name: body.name, 
     email: body.email, 

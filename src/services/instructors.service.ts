@@ -1,6 +1,5 @@
-import { InstructorWhereInput } from "../../generated/prisma/models"
 import { getInstructorsRepository } from "../repositories/instructor.repository"
 
-export const getInstructors = async (where: InstructorWhereInput) => {
+export const getInstructors = async (where: any) => {
    return await getInstructorsRepository(where)
 }

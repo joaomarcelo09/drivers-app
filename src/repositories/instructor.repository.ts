@@ -13,7 +13,8 @@ export const createInstructorRespository = async (
     data: {
       active: true,
       priceHour: body.priceHour,
-      coordinates: `${body.coordinates.lat},${body.coordinates.lng}`,
+      latitude: body.coordinates.lat,
+      longitude: body.coordinates.lng,
       bio: body.bio,
       instructorCategories: body.categoriesId?.length
         ? {
