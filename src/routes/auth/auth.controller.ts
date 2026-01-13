@@ -32,9 +32,8 @@ router.post("/login", validateData(userLoginSchema), async (req: Request, res: R
     const refresh_token = generateRefreshToken(user.id, user.name);
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
-      secure: isProduction,
+      secure: true,
       sameSite: "none",
-
       path: "/",
       maxAge: 45 * 24 * 60 * 60 * 1000,
     });
@@ -73,7 +72,7 @@ router.post("/register-driver", validateData(driverRegistrationSchema), async (r
     const refresh_token = generateRefreshToken(newUser.id, newUser.name);
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
-      secure: isProduction,
+      secure: true,
       sameSite: "none",
       path: "/",
       maxAge: 45 * 24 * 60 * 60 * 1000,
@@ -113,7 +112,6 @@ router.post("/register-instructor", validateData(instructorRegistrationSchema), 
       httpOnly: true,
       secure: isProduction,
       sameSite: "none",
-
       path: "/",
       maxAge: 45 * 24 * 60 * 60 * 1000,
     });
@@ -126,32 +124,19 @@ router.post("/register-instructor", validateData(instructorRegistrationSchema), 
   }
 });
 
-router.post("/refresh-token", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/refresh-token", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log(req.cookies);
+    const refresh_token = req.cookies.refresh_token;
 
-    const refresh_token = req.cookies["refresh_token"];
+    if (!refresh_token) throw new Error("Refresh token não encontrado");
 
-    if (!refresh_token) {
-      throw new Error("Refresh token não encontrado");
-    }
+    const { user } = validateRefreshToken(refresh_token);
 
-    const { id, name } = validateRefreshToken(refresh_token);
-
-    if (!id || !name) {
+    if (!user.id || !user.name) {
       throw new Error("Refresh token inválido");
     }
 
-    const access_token = generateToken(id, name);
-
-    res.cookie("refresh_token", refresh_token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "none",
-
-      path: "/",
-      maxAge: 45 * 24 * 60 * 60 * 1000,
-    });
+    const access_token = generateToken(user.id, user.name);
 
     res.json(access_token);
   } catch (error) {

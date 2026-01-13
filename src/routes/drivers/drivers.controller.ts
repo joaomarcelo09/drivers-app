@@ -16,8 +16,6 @@ router.get("/", async (req, res, next) => {
 
     const distance = Number(radius) / 111;
 
-    console.log(latitude - distance, latitude + distance, longitude - distance, longitude + distance);
-
     const where = {
       AND: [
         bio && {
