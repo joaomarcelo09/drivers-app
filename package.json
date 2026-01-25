@@ -16,7 +16,8 @@
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docker:start": "docker start $(docker ps -a | grep 'driversappdb' | awk 'NR==1{print $1}')"
   },
   "keywords": [],
   "author": "",
