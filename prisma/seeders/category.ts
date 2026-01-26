@@ -1,21 +1,22 @@
+import { Category } from "../../generated/prisma/enums";
 import { prisma } from "../../src/database/client";
 
 const categories = [
   {
     id: 1,
-    acronym: 'A',
+    acronym: Category.A,
     description: 'A',
     id_seeder: 1,
   },
   {
     id: 2,
-    acronym: 'B',
+    acronym: Category.B,
     description: 'B',
     id_seeder: 2,
   },
   {
     id: 3,
-    acronym: 'C',
+    acronym: Category.C,
     description: 'C',
     id_seeder: 3,
   },
@@ -68,7 +69,7 @@ export async function licenseCategoryMain(tx?) {
       );
 
       return prisma.licenseCategory.update({
-        where: { id: dbItem.id },
+        where: { id: dbItem?.id },
         data: {
           acronym: cat.acronym,
           description: cat.description,
