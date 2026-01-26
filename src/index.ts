@@ -3,6 +3,8 @@ import cors from "cors";
 import routes from "./routes/routes";
 import HttpException from "./models/http-exception.model";
 import cookieParser from "cookie-parser";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./docs/swagger";
 
 const app = express();
 
@@ -21,6 +23,10 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded());
+
+// Swagger
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use(routes);
 
 // Serves images
