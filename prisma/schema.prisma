@@ -50,6 +50,7 @@ model Driver {
 
 model LicenseCategory {
   id                   Int                  @id @default(autoincrement())
+  id_seeder            Int                  @unique
   acronym              Category             @unique
   description          String
   instructorCategories InstructorCategory[]
