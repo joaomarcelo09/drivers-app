@@ -37,3 +37,7 @@ export const createInstructorRespository = async (
 export const getInstructorsRepository = async (where: InstructorWhereInput) => {
   return await prisma.instructor.findMany({where});
 };
+
+export const getInstructorRepository = async (where: InstructorWhereInput) => {
+  return await prisma.instructor.findFirst({where});
+};

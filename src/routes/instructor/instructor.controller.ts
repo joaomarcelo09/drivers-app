@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { getInstructors } from "../../services/instructors.service";
+import { getInstructor, getInstructors } from "../../services/instructors.service";
 import authMiddleware from "../../middleware/securityMiddleware";
+import { instructorResponseSchema } from "../../schemas/instructorSchema";
 
 const router = Router();
 
@@ -13,10 +14,10 @@ const router = Router();
 
 /**
  * @swagger
- * /api/drivers:
+ * /api/instructor:
  *   get:
  *     summary: Get instructors with filters
- *     tags: [Drivers]
+ *     tags: [Instructors]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -150,8 +151,24 @@ router.get(
   },
 );
 
+router.get("/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const where = {
+      id: Number(id),
+    };
+
+    const instructor = await getInstructor(where);
+    const response = instructorResponseSchema.parse(instructor);
+    res.send(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default Router().use(
-  "/drivers",
+  "/instructor",
   authMiddleware.required,
   router,
 );
