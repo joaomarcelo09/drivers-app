@@ -2,11 +2,7 @@ import { Prisma } from "../../generated/prisma/client";
 import { InstructorWhereInput } from "../../generated/prisma/models";
 import { prisma } from "../database/client";
 
-export const createInstructorRespository = async (
-  body: any,
-  userId: number,
-  tx?: Prisma.TransactionClient
-) => {
+export const createInstructorRespository = async (body: any, userId: number, tx?: Prisma.TransactionClient) => {
   const prismaORM = tx || prisma;
 
   return await prismaORM.instructor.create({
@@ -35,9 +31,24 @@ export const createInstructorRespository = async (
 };
 
 export const getInstructorsRepository = async (where: InstructorWhereInput) => {
-  return await prisma.instructor.findMany({where});
+  return await prisma.instructor.findMany({ where });
 };
 
 export const getInstructorRepository = async (where: InstructorWhereInput) => {
-  return await prisma.instructor.findFirst({where});
+  return await prisma.instructor.findFirst({
+    where,
+    select: {
+      priceHour: true,
+      bio: true,
+      user: {
+        select: {
+          name: true,
+          telephone: true,
+          city: true,
+          state: true,
+          email: true,
+        },
+      },
+    },
+  });
 };

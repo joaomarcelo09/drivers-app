@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from "express";
 import { getInstructor, getInstructors } from "../../services/instructors.service";
 import authMiddleware from "../../middleware/securityMiddleware";
 import { instructorResponseSchema } from "../../schemas/instructorSchema";
+import { InstructorWhereInput } from "../../../generated/prisma/models";
 
 const router = Router();
 
@@ -92,64 +93,61 @@ const router = Router();
  *       401:
  *         description: Unauthorized
  */
-router.get(
-  "/",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { bio, active, minPrice, maxPrice, lat, lng, radius = 5 } =
-        req.query;
+router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { bio, active, minPrice, maxPrice, lat, lng, radius = 5 } = req.query;
 
-      const latitude = Number(lat);
-      const longitude = Number(lng);
+    const latitude = Number(lat);
+    const longitude = Number(lng);
 
-      const hasValidCoords =
-        Number.isFinite(latitude) &&
-        Number.isFinite(longitude) &&
-        latitude >= -90 &&
-        latitude <= 90 &&
-        longitude >= -180 &&
-        longitude <= 180;
+    const hasValidCoords =
+      Number.isFinite(latitude) && Number.isFinite(longitude) && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
 
-      // Approx: 1 degree ≈ 111km
-      const distance = Number(radius) / 111;
+    // Approx: 1 degree ≈ 111km
+    const distance = Number(radius) / 111;
 
-      const where = {
-        AND: [
-          bio && {
-            bio: { contains: bio as string, mode: "insensitive" },
-          },
+    const conditions: InstructorWhereInput[] = [];
 
-          active !== undefined && {
-            active: active === "true",
-          },
-
-          (minPrice || maxPrice) && {
-            priceHour: {
-              gte: minPrice ? Number(minPrice) : undefined,
-              lte: maxPrice ? Number(maxPrice) : undefined,
-            },
-          },
-
-          hasValidCoords && {
-            latitude: {
-              gte: latitude - distance,
-              lte: latitude + distance,
-            },
-            longitude: {
-              gte: longitude - distance,
-              lte: longitude + distance,
-            },
-          },
-        ].filter(Boolean),
-      };
-
-      const instructors = await getInstructors(where);
-      res.json(instructors);
-    } catch (error) {
-      next(error);
+    if (bio) {
+      conditions.push({ bio: { contains: bio as string, mode: "insensitive" } });
     }
-  },
-);
+
+    if (active !== undefined) {
+      conditions.push({ active: active === "true" });
+    }
+
+    if (minPrice || maxPrice) {
+      conditions.push({
+        priceHour: {
+          gte: minPrice ? Number(minPrice) : undefined,
+          lte: maxPrice ? Number(maxPrice) : undefined,
+        },
+      });
+    }
+
+    if (hasValidCoords) {
+      conditions.push({
+        latitude: {
+          gte: latitude - distance,
+          lte: latitude + distance,
+        },
+        longitude: {
+          gte: longitude - distance,
+          lte: longitude + distance,
+        },
+      });
+    }
+
+    const where: InstructorWhereInput = {
+      AND: conditions.length > 0 ? conditions : undefined,
+    };
+
+    const instructors = await getInstructors(where);
+    res.json(instructors);
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.get("/:id", async (req, res, next) => {
   try {
@@ -167,8 +165,4 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-export default Router().use(
-  "/instructor",
-  authMiddleware.required,
-  router,
-);
+export default Router().use("/instructor", authMiddleware.required, router);

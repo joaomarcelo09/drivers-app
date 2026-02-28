@@ -1,8 +1,13 @@
 import z from "zod";
 
 export const instructorResponseSchema = z.object({
-  id: z.number(),
   priceHour: z.any(),
   bio: z.string(),
-  active: z.boolean(),
-})
+  user: z.object({
+    name: z.string(),
+    telephone: z.string(),
+    city: z.string(),
+    state: z.string(),
+    email: z.string().email(),
+  }),
+});
