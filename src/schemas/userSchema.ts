@@ -57,3 +57,25 @@ export const userResponseSchema = z.object({
     })
     .nullable(),
 });
+
+export const updateUserSchema = z.object({
+  name: z.string().optional(),
+  telephone: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  gender: z.enum(["MALE", "FEMALE"]).optional(),
+  driver: z
+    .object({
+      active: z.boolean().optional(),
+    })
+    .optional(),
+  instructor: z
+    .object({
+      priceHour: z.number().optional(),
+      bio: z.string().optional(),
+      active: z.boolean().optional(),
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
+    })
+    .optional(),
+});
