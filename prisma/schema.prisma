@@ -20,6 +20,7 @@ model User {
   password    String
   telephone   String      @default("")
   role        Role        @default(DRIVER)
+  photo       String   @default("")
   gender      Gender      @default(MALE)
   city        String      @default("")
   state       String      @default("")
@@ -28,13 +29,17 @@ model User {
 }
 
 model Instructor {
-  id        Int     @id @default(autoincrement())
-  priceHour Decimal
-  latitude  Float?
-  longitude Float?
-  bio       String
-  active    Boolean
-  userId    Int     @unique
+  id          Int      @id @default(autoincrement())
+  priceHour   Decimal
+  latitude    Float?
+  longitude   Float?
+  bio         String
+  cnh         String   @default("")
+  active      Boolean
+  hasVehicle  Boolean  @default(false)
+  vehicleType String   @default("")
+  rating      Float    @default(0)
+  userId      Int      @unique
 
   user                 User                 @relation(fields: [userId], references: [id])
   instructorCategories InstructorCategory[]

@@ -3,6 +3,7 @@ export interface UserRegisterInput {
   email: string;
   telephone: string;
   password: string;
+  photo: string;
   role: "DRIVER" | "INSTRUCTOR";
   gender: "MALE" | "FEMALE";
   city: string;

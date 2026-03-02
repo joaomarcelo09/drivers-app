@@ -39,6 +39,7 @@ export const updateUser = async (
     city?: string;
     state?: string;
     gender?: "MALE" | "FEMALE";
+    photo?: string;
   },
   driverData?: {
     active?: boolean;
@@ -46,9 +47,13 @@ export const updateUser = async (
   instructorData?: {
     priceHour?: number;
     bio?: string;
+    cnh?: string;
     active?: boolean;
     latitude?: number;
     longitude?: number;
+    hasVehicle?: boolean;
+    vehicleType?: string;
+    rating?: number;
   },
 ) => {
   return await updateUserRepository(userId, userData, driverData, instructorData);

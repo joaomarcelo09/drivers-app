@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "Instructor" ADD COLUMN     "cnh" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "hasVehicle" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "vehicleType" TEXT NOT NULL DEFAULT '';
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "photo" TEXT NOT NULL DEFAULT '';

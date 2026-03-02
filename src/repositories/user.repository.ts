@@ -13,6 +13,7 @@ export const createUserRespository = async (body: UserRegisterInput, tx?: Prisma
       password: body.password,
       telephone: body.telephone,
       role: body.role,
+      photo: body.photo,
       gender: body.gender,
       city: body.city,
       state: body.state,
@@ -36,6 +37,7 @@ export const getMeUserRepository = async (userId: number) => {
       state: true,
       role: true,
       gender: true,
+      photo: true,
       driver: {
         select: {
           id: true,
@@ -47,9 +49,13 @@ export const getMeUserRepository = async (userId: number) => {
           id: true,
           priceHour: true,
           bio: true,
+          cnh: true,
           active: true,
           latitude: true,
           longitude: true,
+          hasVehicle: true,
+          vehicleType: true,
+          rating: true,
         },
       },
     },
@@ -66,6 +72,7 @@ export const updateUserRepository = async (
     city?: string;
     state?: string;
     gender?: "MALE" | "FEMALE";
+    photo?: string;
   },
   driverData?: {
     active?: boolean;
@@ -73,9 +80,14 @@ export const updateUserRepository = async (
   instructorData?: {
     priceHour?: number;
     bio?: string;
+    cnh?: string;
+    photo?: string;
     active?: boolean;
     latitude?: number;
     longitude?: number;
+    hasVehicle?: boolean;
+    vehicleType?: string;
+    rating?: number;
   },
 ) => {
   const user = await prisma.user.findUnique({
@@ -93,6 +105,7 @@ export const updateUserRepository = async (
     ...(userData.city && { city: userData.city }),
     ...(userData.state && { state: userData.state }),
     ...(userData.gender && { gender: userData.gender }),
+    ...(userData.photo && { photo: userData.photo }),
   };
 
   if (user.role === "DRIVER" && driverData) {
@@ -108,9 +121,12 @@ export const updateUserRepository = async (
       update: {
         ...(instructorData.priceHour !== undefined && { priceHour: instructorData.priceHour }),
         ...(instructorData.bio !== undefined && { bio: instructorData.bio }),
+        ...(instructorData.cnh !== undefined && { cnh: instructorData.cnh }),
         ...(instructorData.active !== undefined && { active: instructorData.active }),
         ...(instructorData.latitude !== undefined && { latitude: instructorData.latitude }),
         ...(instructorData.longitude !== undefined && { longitude: instructorData.longitude }),
+        ...(instructorData.vehicleType !== undefined && { vehicleType: instructorData.vehicleType }),
+        ...(instructorData.rating !== undefined && { rating: instructorData.rating }),
       },
     };
   }
@@ -127,6 +143,7 @@ export const updateUserRepository = async (
       state: true,
       role: true,
       gender: true,
+      photo: true,
       driver: {
         select: {
           id: true,
@@ -138,9 +155,12 @@ export const updateUserRepository = async (
           id: true,
           priceHour: true,
           bio: true,
+          cnh: true,
           active: true,
           latitude: true,
           longitude: true,
+          vehicleType: true,
+          rating: true,
         },
       },
     },

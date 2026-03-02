@@ -6,6 +6,29 @@ import { InstructorWhereInput } from "../../../generated/prisma/models";
 
 const router = Router();
 
+const transformInstructor = (instructor: any) => {
+  if (!instructor) return null;
+
+  return {
+    id: instructor.id,
+    name: instructor.user?.name || "",
+    email: instructor.user?.email || "",
+    telephone: instructor.user?.telephone || "",
+    cnh: instructor.cnh || "",
+    hasVehicle: instructor.hasVehicle || false,
+    photo: instructor.user?.photo || "",
+    rating: instructor.rating || 0,
+    reviewCount: 0,
+    distance: 0,
+    pricePerHour: instructor.priceHour,
+    vehicleType: instructor.vehicleType || "",
+    categories: instructor.instructorCategories?.map((ic: any) => ic.licenseCategory?.acronym) || [],
+    gender: instructor.user?.gender,
+    bio: instructor.bio,
+    createdAt: instructor.user?.createdAt ? new Date(instructor.user.createdAt).toISOString() : "",
+  };
+};
+
 /**
  * @swagger
  * tags:
@@ -143,7 +166,8 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
     };
 
     const instructors = await getInstructors(where);
-    res.json(instructors);
+    const transformedInstructors = instructors.map(transformInstructor);
+    res.json(transformedInstructors);
   } catch (error) {
     next(error);
   }
@@ -158,7 +182,8 @@ router.get("/:id", async (req, res, next) => {
     };
 
     const instructor = await getInstructor(where);
-    const response = instructorResponseSchema.parse(instructor);
+    const transformed = transformInstructor(instructor);
+    const response = instructorResponseSchema.parse(transformed);
     res.send(response);
   } catch (error) {
     next(error);
