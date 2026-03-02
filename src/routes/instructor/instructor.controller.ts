@@ -116,7 +116,7 @@ const transformInstructor = (instructor: any) => {
  *       401:
  *         description: Unauthorized
  */
-router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/", authMiddleware.optional,async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { bio, active, minPrice, maxPrice, lat, lng, radius = 5 } = req.query;
 
@@ -173,7 +173,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id", authMiddleware.required,async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -190,4 +190,4 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-export default Router().use("/instructor", authMiddleware.required, router);
+export default Router().use("/instructor", router);

@@ -19,7 +19,6 @@ export const instructorRegistrationSchema = userRegistrationSchema.extend({
   hasVehicle: z.boolean(),
   vehicleType: z.string(),
   cnh: z.string(),
-  rating: z.number(),
   bio: z.string(),
   coordinates: z.object({ lat: z.number(), lng: z.number() }),
 });
