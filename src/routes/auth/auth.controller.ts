@@ -1,21 +1,13 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { validateData } from "../../middleware/validationMiddleware";
-import {
-  driverRegistrationSchema,
-  instructorRegistrationSchema,
-  userAuthResponseSchema,
-  userLoginSchema,
-} from "../../schemas/userSchema";
+import { driverRegistrationSchema, instructorRegistrationSchema, userAuthResponseSchema, userLoginSchema } from "../../schemas/userSchema";
 import authMiddleware from "../../middleware/securityMiddleware";
-import {
-  generateRefreshToken,
-  generateToken,
-  validateRefreshToken,
-} from "../../utils/generateToken";
+import { generateRefreshToken, generateToken, validateRefreshToken } from "../../utils/generateToken";
 import { createUser, getUser } from "../../services/user.service";
 import { comparePassword, hashPassword } from "../../utils/bcrypt";
-import { BAD_REQUEST } from "http-status-codes";
+import { BAD_REQUEST, StatusCodes, UNAUTHORIZED } from "http-status-codes";
 import HttpException from "../../models/http-exception.model";
+import { UnauthorizedError } from "express-jwt";
 
 const router = Router();
 const isProduction = process.env.NODE_ENV === "production";
@@ -74,48 +66,40 @@ const isProduction = process.env.NODE_ENV === "production";
  *       400:
  *         description: Invalid credentials
  */
-router.post(
-  "/login",
-  validateData(userLoginSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const user = await getUser({ email: req.body.email });
+router.post("/login", validateData(userLoginSchema), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await getUser({ email: req.body.email });
 
-      if (!user) {
-        throw new HttpException(BAD_REQUEST, "Usuário inexistente");
-      }
-
-      const passwordMatch = await comparePassword(
-        req.body.password,
-        user.password,
-      );
-
-      if (!passwordMatch) {
-        throw new HttpException(BAD_REQUEST, "Senha incorreta");
-      }
-
-      const accessToken = generateToken(user.id, user.name);
-      const refresh_token = generateRefreshToken(user.id, user.name);
-
-      res.cookie("refresh_token", refresh_token, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: "none",
-        path: "/",
-        maxAge: 45 * 24 * 60 * 60 * 1000,
-      });
-
-      const response = userAuthResponseSchema.parse({
-        ...user,
-        accessToken,
-      });
-
-      res.json(response);
-    } catch (error) {
-      next(error);
+    if (!user) {
+      throw new HttpException(BAD_REQUEST, "Usuário inexistente");
     }
-  },
-);
+
+    const passwordMatch = await comparePassword(req.body.password, user.password);
+
+    if (!passwordMatch) {
+      throw new HttpException(BAD_REQUEST, "Senha incorreta");
+    }
+
+    const accessToken = generateToken(user.id, user.name);
+    const refresh_token = generateRefreshToken(user.id, user.name);
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 45 * 24 * 60 * 60 * 1000,
+    });
+
+    const response = userAuthResponseSchema.parse({
+      ...user,
+      accessToken,
+    });
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * @swagger
@@ -166,49 +150,41 @@ router.post(
  *       400:
  *         description: User already exists
  */
-router.post(
-  "/register-driver",
-  validateData(driverRegistrationSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const existingUser = await getUser({ email: req.body.email });
+router.post("/register-driver", validateData(driverRegistrationSchema), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const existingUser = await getUser({ email: req.body.email });
 
-      if (existingUser) {
-        throw new HttpException(
-          BAD_REQUEST,
-          "Usuário existente com esse email",
-        );
-      }
-
-      req.body.password = await hashPassword(req.body.password);
-
-      const newUser = await createUser({
-        ...driverRegistrationSchema.parse(req.body),
-        role: "DRIVER",
-      });
-
-      const accessToken = generateToken(newUser.id, newUser.name);
-      const refresh_token = generateRefreshToken(newUser.id, newUser.name);
-
-      res.cookie("refresh_token", refresh_token, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: "none",
-        path: "/",
-        maxAge: 45 * 24 * 60 * 60 * 1000,
-      });
-
-      const response = userAuthResponseSchema.parse({
-        ...newUser,
-        accessToken,
-      });
-
-      res.json(response);
-    } catch (error) {
-      next(error);
+    if (existingUser) {
+      throw new HttpException(BAD_REQUEST, "Usuário existente com esse email");
     }
-  },
-);
+
+    req.body.password = await hashPassword(req.body.password);
+
+    const newUser = await createUser({
+      ...driverRegistrationSchema.parse(req.body),
+      role: "DRIVER",
+    });
+
+    const accessToken = generateToken(newUser.id, newUser.name);
+    const refresh_token = generateRefreshToken(newUser.id, newUser.name);
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 45 * 24 * 60 * 60 * 1000,
+    });
+
+    const response = userAuthResponseSchema.parse({
+      ...newUser,
+      accessToken,
+    });
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * @swagger
@@ -259,49 +235,41 @@ router.post(
  *       400:
  *         description: User already exists
  */
-router.post(
-  "/register-instructor",
-  validateData(instructorRegistrationSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const existingUser = await getUser({ email: req.body.email });
+router.post("/register-instructor", validateData(instructorRegistrationSchema), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const existingUser = await getUser({ email: req.body.email });
 
-      if (existingUser) {
-        throw new HttpException(
-          BAD_REQUEST,
-          "Usuário existente com esse email",
-        );
-      }
-
-      req.body.password = await hashPassword(req.body.password);
-
-      const newUser = await createUser({
-        ...instructorRegistrationSchema.parse(req.body),
-        role: "INSTRUCTOR",
-      });
-
-      const accessToken = generateToken(newUser.id, newUser.name);
-      const refresh_token = generateRefreshToken(newUser.id, newUser.name);
-
-      res.cookie("refresh_token", refresh_token, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: "none",
-        path: "/",
-        maxAge: 45 * 24 * 60 * 60 * 1000,
-      });
-
-      const response = userAuthResponseSchema.parse({
-        ...newUser,
-        accessToken,
-      });
-
-      res.json(response);
-    } catch (error) {
-      next(error);
+    if (existingUser) {
+      throw new HttpException(BAD_REQUEST, "Usuário existente com esse email");
     }
-  },
-);
+
+    req.body.password = await hashPassword(req.body.password);
+
+    const newUser = await createUser({
+      ...instructorRegistrationSchema.parse(req.body),
+      role: "INSTRUCTOR",
+    });
+
+    const accessToken = generateToken(newUser.id, newUser.name);
+    const refresh_token = generateRefreshToken(newUser.id, newUser.name);
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 45 * 24 * 60 * 60 * 1000,
+    });
+
+    const response = userAuthResponseSchema.parse({
+      ...newUser,
+      accessToken,
+    });
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * @swagger
@@ -320,29 +288,26 @@ router.post(
  *       401:
  *         description: Refresh token missing or invalid
  */
-router.get(
-  "/refresh-token",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const refresh_token = req.cookies.refresh_token;
+router.get("/refresh-token", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const refresh_token = req.cookies.refresh_token;
 
-      if (!refresh_token) {
-        throw new Error("Refresh token não encontrado");
-      }
-
-      const { user } = validateRefreshToken(refresh_token);
-
-      if (!user?.id || !user?.name) {
-        throw new Error("Refresh token inválido");
-      }
-
-      const access_token = generateToken(user.id, user.name);
-
-      res.json(access_token);
-    } catch (error) {
-      next(error);
+    if (!refresh_token) {
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "Refresh token não encontrado");
     }
-  },
-);
+
+    const { user } = validateRefreshToken(refresh_token);
+
+    if (!user?.id || !user?.name) {
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "Refresh token inválido");
+    }
+
+    const access_token = generateToken(user.id, user.name);
+
+    res.json(access_token);
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default Router().use("/auth", authMiddleware.optional, router);

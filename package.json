@@ -7,7 +7,7 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:format": "prisma format",
-    "dev": "tsx --watch --env-file=.env src/index.ts",
+    "start:dev": "tsx --watch --env-file=.env src/index.ts",
     "prod": "tsx --watch --env-file=.env.production src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
@@ -18,7 +18,7 @@
     "format:check": "prettier --check .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "docker:start": "docker start $(docker ps -a | grep 'driversappdb' | awk 'NR==1{print $1}')",
-    "start:dev": "pnpm docker:start && pnpm dev",
+    "dev": "pnpm docker:start && pnpm start:dev",
     "seed": "tsx --env-file=.env prisma/seed.ts"
   },
   "keywords": [],
