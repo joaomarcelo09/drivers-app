@@ -16,5 +16,4 @@ export const instructorResponseSchema = z.object({
   categories: z.array(z.string()),
   gender: z.enum(["MALE", "FEMALE"]).optional(),
   bio: z.string().optional(),
-  createdAt: z.string(),
 });

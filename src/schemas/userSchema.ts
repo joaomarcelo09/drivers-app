@@ -6,7 +6,7 @@ const userRegistrationSchema = z.object({
   telephone: z.string(),
   password: z.string().min(8),
   gender: z.enum(["MALE", "FEMALE"]),
-  photo: z.string(),
+  photo: z.string().optional(),
   city: z.string(),
   state: z.string(),
 });
@@ -21,6 +21,7 @@ export const instructorRegistrationSchema = userRegistrationSchema.extend({
   cnh: z.string(),
   bio: z.string(),
   coordinates: z.object({ lat: z.number(), lng: z.number() }),
+  photo: z.string(),
 });
 
 export const userLoginSchema = z.object({
@@ -45,7 +46,6 @@ export const userResponseSchema = z.object({
   role: z.enum(["DRIVER", "INSTRUCTOR"]),
   gender: z.enum(["MALE", "FEMALE"]),
   photo: z.string(),
-  createdAt: z.string(),
   driver: z
     .object({
       id: z.number(),

@@ -48,6 +48,7 @@ export const getInstructorsRepository = async (where: InstructorWhereInput) => {
       active: true,
       latitude: true,
       longitude: true,
+      rangeKm: true,
       user: {
         select: {
           id: true,
@@ -87,6 +88,7 @@ export const getInstructorRepository = async (where: InstructorWhereInput) => {
       active: true,
       latitude: true,
       longitude: true,
+      rangeKm: true,
       user: {
         select: {
           id: true,

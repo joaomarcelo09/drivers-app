@@ -20,12 +20,12 @@ const transformInstructor = (instructor: any) => {
     rating: instructor.rating || 0,
     reviewCount: 0,
     distance: 0,
+    rangeKm: instructor.rangeKm || 0,
     pricePerHour: instructor.priceHour,
     vehicleType: instructor.vehicleType || "",
     categories: instructor.instructorCategories?.map((ic: any) => ic.licenseCategory?.acronym) || [],
     gender: instructor.user?.gender,
     bio: instructor.bio,
-    createdAt: instructor.user?.createdAt ? new Date(instructor.user.createdAt).toISOString() : "",
   };
 };
 
@@ -116,9 +116,9 @@ const transformInstructor = (instructor: any) => {
  *       401:
  *         description: Unauthorized
  */
-router.get("/", authMiddleware.optional,async (req: Request, res: Response, next: NextFunction) => {
+router.get("/", authMiddleware.optional, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { bio, active, minPrice, maxPrice, lat, lng, radius = 5 } = req.query;
+    const { bio, active, minPrice, maxPrice, lat, lng, radius = 5, minRating, maxRating, gender, categories, rangeKm } = req.query;
 
     const latitude = Number(lat);
     const longitude = Number(lng);
@@ -161,6 +161,46 @@ router.get("/", authMiddleware.optional,async (req: Request, res: Response, next
       });
     }
 
+    if (minRating || maxRating) {
+      conditions.push({
+        rating: {
+          gte: minRating ? Number(minRating) : undefined,
+          lte: maxRating ? Number(maxRating) : undefined,
+        },
+      });
+    }
+
+    if (rangeKm) {
+      conditions.push({
+        rangeKm: {
+          gte: Number(rangeKm),
+        },
+      });
+    }
+
+    if (gender) {
+      conditions.push({
+        user: {
+          gender: (gender as string).toUpperCase() as "MALE" | "FEMALE",
+        },
+      });
+    }
+
+    if (categories) {
+      const categoryList = (categories as string).split(",").map((c: string) => c.trim().toUpperCase());
+      conditions.push({
+        instructorCategories: {
+          some: {
+            licenseCategory: {
+              acronym: {
+                in: categoryList as any[],
+              },
+            },
+          },
+        },
+      });
+    }
+
     const where: InstructorWhereInput = {
       AND: conditions.length > 0 ? conditions : undefined,
     };
@@ -173,7 +213,7 @@ router.get("/", authMiddleware.optional,async (req: Request, res: Response, next
   }
 });
 
-router.get("/:id", authMiddleware.required,async (req, res, next) => {
+router.get("/:id", authMiddleware.required, async (req, res, next) => {
   try {
     const { id } = req.params;
 

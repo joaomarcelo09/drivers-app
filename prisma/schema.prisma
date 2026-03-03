@@ -20,7 +20,7 @@ model User {
   password    String
   telephone   String      @default("")
   role        Role        @default(DRIVER)
-  photo       String   @default("")
+  photo       String      @default("")
   gender      Gender      @default(MALE)
   city        String      @default("")
   state       String      @default("")
@@ -39,6 +39,7 @@ model Instructor {
   hasVehicle  Boolean  @default(false)
   vehicleType String   @default("")
   rating      Float    @default(0)
+  rangeKm     Float    @default(0)
   userId      Int      @unique
 
   user                 User                 @relation(fields: [userId], references: [id])
