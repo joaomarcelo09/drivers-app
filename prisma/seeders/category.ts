@@ -20,6 +20,18 @@ const categories = [
     description: 'C',
     id_seeder: 3,
   },
+  {
+    id: 4,
+    acronym: Category.D,
+    description: 'D',
+    id_seeder: 4,
+  },
+  {
+    id: 5,
+    acronym: Category.E,
+    description: 'E',
+    id_seeder: 5,
+  },
 ];
 
 export async function licenseCategoryMain(tx?) {

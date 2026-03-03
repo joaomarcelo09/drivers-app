@@ -54,6 +54,7 @@ export const updateUser = async (
     hasVehicle?: boolean;
     vehicleType?: string;
     rating?: number;
+    rangeKm?: number;
   },
 ) => {
   return await updateUserRepository(userId, userData, driverData, instructorData);

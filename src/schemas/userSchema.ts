@@ -59,6 +59,7 @@ export const userResponseSchema = z.object({
       bio: z.string(),
       cnh: z.string(),
       active: z.boolean(),
+      rangeKm: z.number(),
       latitude: z.number().nullable(),
       longitude: z.number().nullable(),
       hasVehicle: z.boolean(),
@@ -91,6 +92,7 @@ export const updateUserSchema = z.object({
       hasVehicle: z.boolean().optional(),
       vehicleType: z.string().optional(),
       rating: z.number().optional(),
+      rangeKm: z.number().optional(),
     })
     .optional(),
 });

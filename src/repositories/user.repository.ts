@@ -53,6 +53,7 @@ export const getMeUserRepository = async (userId: number) => {
           active: true,
           latitude: true,
           longitude: true,
+          rangeKm: true,
           hasVehicle: true,
           vehicleType: true,
           rating: true,
@@ -88,6 +89,7 @@ export const updateUserRepository = async (
     hasVehicle?: boolean;
     vehicleType?: string;
     rating?: number;
+    rangeKm?: number;
   },
 ) => {
   const user = await prisma.user.findUnique({
@@ -127,6 +129,8 @@ export const updateUserRepository = async (
         ...(instructorData.longitude !== undefined && { longitude: instructorData.longitude }),
         ...(instructorData.vehicleType !== undefined && { vehicleType: instructorData.vehicleType }),
         ...(instructorData.rating !== undefined && { rating: instructorData.rating }),
+        ...(instructorData.rangeKm !== undefined && { rangeKm: instructorData.rangeKm }),
+        ...(instructorData.hasVehicle !== undefined && { hasVehicle: instructorData.hasVehicle }),
       },
     };
   }
@@ -161,6 +165,8 @@ export const updateUserRepository = async (
           longitude: true,
           vehicleType: true,
           rating: true,
+          rangeKm: true,
+          hasVehicle: true,
         },
       },
     },

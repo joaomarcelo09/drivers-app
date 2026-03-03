@@ -10,6 +10,7 @@ export const instructorResponseSchema = z.object({
   photo: z.string(),
   rating: z.number(),
   reviewCount: z.number(),
+  rangeKm: z.number(),
   distance: z.number(),
   pricePerHour: z.any(),
   vehicleType: z.string(),
