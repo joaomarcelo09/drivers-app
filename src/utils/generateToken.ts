@@ -10,6 +10,10 @@ export const generateRefreshToken = (id: number, name: string): string =>
     expiresIn: "7d",
   });
 
-export const validateRefreshToken = (token: string) => {
-  return jwt.verify(token, process.env.JWT_REFRESH_SECRET || "superSecret");
+export const validateRefreshToken = (token: string): { user: { id: number; name: string } } => {
+  const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || "superSecret");
+  if (typeof decoded === "string") {
+    throw new Error("Invalid token");
+  }
+  return decoded as { user: { id: number; name: string } };
 };

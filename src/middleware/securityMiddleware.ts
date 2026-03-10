@@ -1,27 +1,27 @@
-import { expressjwt as jwt } from 'express-jwt';
-import * as express from 'express';
+import { expressjwt as jwt } from "express-jwt";
+import * as express from "express";
 
-const getTokenFromHeaders = (req: express.Request): string | null => {
+const getTokenFromHeaders = (req: express.Request): string | undefined => {
   if (
-    (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Token') ||
-    (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer')
+    (req.headers.authorization && req.headers.authorization.split(" ")[0] === "Token") ||
+    (req.headers.authorization && req.headers.authorization.split(" ")[0] === "Bearer")
   ) {
-    return req.headers.authorization.split(' ')[1];
+    return req.headers.authorization.split(" ")[1];
   }
-  return null;
+  return undefined;
 };
 
 const authMiddleware = {
   required: jwt({
-    secret: process.env.JWT_SECRET || 'superSecret',
+    secret: process.env.JWT_SECRET || "superSecret",
     getToken: getTokenFromHeaders,
-    algorithms: ['HS256'],
+    algorithms: ["HS256"],
   }),
   optional: jwt({
-    secret: process.env.JWT_SECRET || 'superSecret',
+    secret: process.env.JWT_SECRET || "superSecret",
     credentialsRequired: false,
     getToken: getTokenFromHeaders,
-    algorithms: ['HS256'],
+    algorithms: ["HS256"],
   }),
 };
 
