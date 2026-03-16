@@ -11,9 +11,12 @@ const transformInstructor = (instructor: any) => {
 
   return {
     id: instructor.id,
+    createdAt: instructor.createdAt,
     name: instructor.user?.name || "",
     email: instructor.user?.email || "",
     telephone: instructor.user?.telephone || "",
+    city: instructor.user?.city || "",
+    state: instructor.user?.state || "",
     cnh: instructor.cnh || "",
     hasVehicle: instructor.hasVehicle || false,
     photo: instructor.user?.photo || "",
@@ -21,7 +24,7 @@ const transformInstructor = (instructor: any) => {
     reviewCount: 0,
     distance: 0,
     rangeKm: instructor.rangeKm || 0,
-    pricePerHour: instructor.priceHour,
+    pricePerHour: Number(instructor.priceHour),
     vehicleType: instructor.vehicleType || "",
     categories: instructor.instructorCategories?.map((ic: any) => ic.licenseCategory?.acronym) || [],
     gender: instructor.user?.gender,
@@ -213,7 +216,7 @@ router.get("/", authMiddleware.optional, async (req: Request, res: Response, nex
   }
 });
 
-router.get("/:id", authMiddleware.required, async (req, res, next) => {
+router.get("/:id", authMiddleware.optional, async (req, res, next) => {
   try {
     const { id } = req.params;
 

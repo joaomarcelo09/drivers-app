@@ -2,9 +2,12 @@ import z from "zod";
 
 export const instructorResponseSchema = z.object({
   id: z.number(),
+  createdAt: z.date(),
   name: z.string(),
   email: z.string().email(),
   telephone: z.string(),
+  city: z.string(),
+  state: z.string(),
   cnh: z.string(),
   hasVehicle: z.boolean(),
   photo: z.string(),
@@ -12,7 +15,7 @@ export const instructorResponseSchema = z.object({
   reviewCount: z.number(),
   rangeKm: z.number(),
   distance: z.number(),
-  pricePerHour: z.any(),
+  pricePerHour: z.number(),
   vehicleType: z.string(),
   categories: z.array(z.string()),
   gender: z.enum(["MALE", "FEMALE"]).optional(),
