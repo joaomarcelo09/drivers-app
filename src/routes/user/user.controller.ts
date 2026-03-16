@@ -62,6 +62,8 @@ router.get("/me", async (req: Request, res: Response, next: NextFunction) => {
  *               gender:
  *                 type: string
  *                 enum: [MALE, FEMALE]
+ *               photo:
+ *                 type: string
  *               driver:
  *                 type: object
  *                 properties:
@@ -105,6 +107,7 @@ router.put("/me", async (req: Request, res: Response, next: NextFunction) => {
         city: data.city,
         state: data.state,
         gender: data.gender,
+        photo: data.photo,
       },
       data.driver,
       data.instructor,
