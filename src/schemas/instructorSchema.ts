@@ -13,7 +13,7 @@ export const instructorResponseSchema = z.object({
   rangeKm: z.number(),
   distance: z.number(),
   pricePerHour: z.any(),
-  vehicleType: z.string(),
+  vehicleTypes: z.array(z.string()),
   categories: z.array(z.string()),
   gender: z.enum(["MALE", "FEMALE"]).optional(),
   bio: z.string().optional(),

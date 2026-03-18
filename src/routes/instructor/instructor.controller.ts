@@ -22,7 +22,7 @@ const transformInstructor = (instructor: any) => {
     distance: 0,
     rangeKm: instructor.rangeKm || 0,
     pricePerHour: instructor.priceHour,
-    vehicleType: instructor.vehicleType || "",
+    vehicleTypes: instructor.instructorVehicles?.map((iv: any) => iv.vehicleType?.name) || [],
     categories: instructor.instructorCategories?.map((ic: any) => ic.licenseCategory?.acronym) || [],
     gender: instructor.user?.gender,
     bio: instructor.bio,
@@ -118,7 +118,7 @@ const transformInstructor = (instructor: any) => {
  */
 router.get("/", authMiddleware.optional, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { bio, active, minPrice, maxPrice, lat, lng, radius = 5, minRating, maxRating, gender, categories, rangeKm } = req.query;
+    const { bio, active, minPrice, maxPrice, lat, lng, radius = 5, minRating, maxRating, gender, categories, rangeKm, vehicleTypes } = req.query;
 
     const latitude = Number(lat);
     const longitude = Number(lng);
@@ -195,6 +195,19 @@ router.get("/", authMiddleware.optional, async (req: Request, res: Response, nex
               acronym: {
                 in: categoryList as any[],
               },
+            },
+          },
+        },
+      });
+    }
+
+    if (vehicleTypes) {
+      const vehicleTypeList = (vehicleTypes as string).split(",").map((v: string) => Number(v.trim()));
+      conditions.push({
+        instructorVehicles: {
+          some: {
+            vehicleTypeId: {
+              in: vehicleTypeList,
             },
           },
         },
