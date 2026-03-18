@@ -3,9 +3,9 @@ import { validateData } from "../../middleware/validationMiddleware";
 import { driverRegistrationSchema, instructorRegistrationSchema, userAuthResponseSchema, userLoginSchema } from "../../schemas/userSchema";
 import authMiddleware from "../../middleware/securityMiddleware";
 import { generateRefreshToken, generateToken, validateRefreshToken } from "../../utils/generateToken";
-import { createUser, getUser } from "../../services/user.service";
+import { createUser, getUser, updateRefreshToken, getUserByIdWithRefreshToken } from "../../services/user.service";
 import { comparePassword, hashPassword } from "../../utils/bcrypt";
-import { BAD_REQUEST, StatusCodes, UNAUTHORIZED } from "http-status-codes";
+import { BAD_REQUEST, StatusCodes } from "http-status-codes";
 import HttpException from "../../models/http-exception.model";
 import { UnauthorizedError } from "express-jwt";
 
@@ -71,17 +71,19 @@ router.post("/login", validateData(userLoginSchema), async (req: Request, res: R
     const user = await getUser({ email: req.body.email });
 
     if (!user) {
-      throw new HttpException(BAD_REQUEST, "Usuário inexistente");
+      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Usuário não encontrado" });
     }
 
     const passwordMatch = await comparePassword(req.body.password, user.password);
 
     if (!passwordMatch) {
-      throw new HttpException(BAD_REQUEST, "Senha incorreta");
+      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Usuário ou senha inválidos" });
     }
 
     const accessToken = generateToken(user.id, user.name);
     const refresh_token = generateRefreshToken(user.id, user.name);
+
+    await updateRefreshToken(user.id, refresh_token);
 
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
@@ -168,6 +170,8 @@ router.post("/register-driver", validateData(driverRegistrationSchema), async (r
     const accessToken = generateToken(newUser.id, newUser.name);
     const refresh_token = generateRefreshToken(newUser.id, newUser.name);
 
+    await updateRefreshToken(newUser.id, refresh_token);
+
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
       secure: isProduction,
@@ -253,6 +257,8 @@ router.post("/register-instructor", validateData(instructorRegistrationSchema), 
     const accessToken = generateToken(newUser.id, newUser.name);
     const refresh_token = generateRefreshToken(newUser.id, newUser.name);
 
+    await updateRefreshToken(newUser.id, refresh_token);
+
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
       secure: isProduction,
@@ -302,10 +308,49 @@ router.get("/refresh-token", async (req: Request, res: Response, next: NextFunct
       throw new HttpException(StatusCodes.UNAUTHORIZED, "Refresh token inválido");
     }
 
+    const dbUser = await getUserByIdWithRefreshToken(user.id);
+
+    if (!dbUser || dbUser.refreshToken !== refresh_token) {
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "Refresh token inválido ou expirado");
+    }
+
     const access_token = generateToken(user.id, user.name);
 
     res.json(access_token);
   } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user and clear refresh token
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *       401:
+ *         description: Unauthorized
+ */
+router.post("/logout", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const refresh_token = req.cookies.refresh_token;
+
+    if (refresh_token) {
+      const { user } = validateRefreshToken(refresh_token);
+
+      if (user?.id) {
+        await updateRefreshToken(user.id, "");
+      }
+    }
+
+    res.clearCookie("refresh_token");
+
+    res.json({ message: "Logout realizado com sucesso" });
+  } catch (error) {
+    res.clearCookie("refresh_token");
     next(error);
   }
 });

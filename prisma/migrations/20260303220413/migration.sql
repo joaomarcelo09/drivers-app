@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Instructor" ADD COLUMN     "rangeKm" DOUBLE PRECISION NOT NULL DEFAULT 0;

@@ -2,9 +2,12 @@ import z from "zod";
 
 export const instructorResponseSchema = z.object({
   id: z.number(),
+  createdAt: z.date(),
   name: z.string(),
   email: z.string().email(),
   telephone: z.string(),
+  city: z.string(),
+  state: z.string(),
   cnh: z.string(),
   hasVehicle: z.boolean(),
   photo: z.string(),

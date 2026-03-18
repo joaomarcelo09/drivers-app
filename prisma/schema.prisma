@@ -24,6 +24,8 @@ model User {
   gender      Gender      @default(MALE)
   city        String      @default("")
   state       String      @default("")
+  refreshToken String?    @default("")
+  createdAt   DateTime    @default(now())
   instructor  Instructor?
   driver      Driver?
 }
@@ -39,6 +41,7 @@ model Instructor {
   hasVehicle  Boolean  @default(false)
   rating      Float    @default(0)
   rangeKm     Float    @default(0)
+  createdAt   DateTime @default(now())
   userId      Int      @unique
 
   user                 User                 @relation(fields: [userId], references: [id])

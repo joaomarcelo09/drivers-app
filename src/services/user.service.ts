@@ -2,7 +2,14 @@ import { UserWhereInput } from "../../generated/prisma/models";
 import { prisma } from "../database/client";
 import { createDriverRespository } from "../repositories/drivers.repository";
 import { createInstructorRespository } from "../repositories/instructor.repository";
-import { createUserRespository, getUserRepository, getMeUserRepository, updateUserRepository } from "../repositories/user.repository";
+import {
+  createUserRespository,
+  getUserRepository,
+  getMeUserRepository,
+  updateUserRepository,
+  updateRefreshTokenRepository,
+  getUserByIdWithRefreshTokenRepository,
+} from "../repositories/user.repository";
 import { UserRegisterInput } from "../types/registerInput";
 
 export const createUser = async (body: UserRegisterInput) => {
@@ -58,4 +65,12 @@ export const updateUser = async (
   },
 ) => {
   return await updateUserRepository(userId, userData, driverData, instructorData);
+};
+
+export const updateRefreshToken = async (userId: number, refreshToken: string) => {
+  return await updateRefreshTokenRepository(userId, refreshToken);
+};
+
+export const getUserByIdWithRefreshToken = async (userId: number) => {
+  return await getUserByIdWithRefreshTokenRepository(userId);
 };

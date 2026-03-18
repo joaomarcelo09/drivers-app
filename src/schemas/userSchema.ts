@@ -26,7 +26,7 @@ export const instructorRegistrationSchema = userRegistrationSchema.extend({
 
 export const userLoginSchema = z.object({
   email: z.string(),
-  password: z.string().min(8),
+  password: z.string(),
 });
 
 export const userAuthResponseSchema = z.object({
