@@ -172,3 +172,22 @@ export const updateUserRepository = async (
     },
   });
 };
+
+export const updateRefreshTokenRepository = async (userId: number, refreshToken: string) => {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { refreshToken },
+  });
+};
+
+export const getUserByIdWithRefreshTokenRepository = async (userId: number) => {
+  return await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      refreshToken: true,
+    },
+  });
+};

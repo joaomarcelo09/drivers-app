@@ -24,6 +24,7 @@ model User {
   gender      Gender      @default(MALE)
   city        String      @default("")
   state       String      @default("")
+  refreshToken String?    @default("")
   createdAt   DateTime    @default(now())
   instructor  Instructor?
   driver      Driver?
