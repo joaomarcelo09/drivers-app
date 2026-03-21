@@ -14,20 +14,22 @@ datasource db {
 }
 
 model User {
-  id          Int         @id @default(autoincrement())
-  email       String      @unique
-  name        String
-  password    String
-  telephone   String      @default("")
-  role        Role        @default(DRIVER)
-  photo       String      @default("")
-  gender      Gender      @default(MALE)
-  city        String      @default("")
-  state       String      @default("")
-  refreshToken String?    @default("")
-  createdAt   DateTime    @default(now())
-  instructor  Instructor?
-  driver      Driver?
+  id                Int         @id @default(autoincrement())
+  email             String      @unique
+  name              String
+  password          String
+  telephone         String      @default("")
+  role              Role        @default(DRIVER)
+  photo             String      @default("")
+  gender            Gender      @default(MALE)
+  city              String      @default("")
+  state             String      @default("")
+  refreshToken      String?     @default("")
+  confirmationToken String?
+  isConfirmed       Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  instructor        Instructor?
+  driver            Driver?
 }
 
 model Instructor {

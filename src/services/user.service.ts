@@ -9,12 +9,18 @@ import {
   updateUserRepository,
   updateRefreshTokenRepository,
   getUserByIdWithRefreshTokenRepository,
+  updateConfirmationTokenRepository,
+  confirmUserEmailRepository,
+  getUserByConfirmationTokenRepository,
 } from "../repositories/user.repository";
 import { UserRegisterInput } from "../types/registerInput";
+import { randomBytes } from "crypto";
 
 export const createUser = async (body: UserRegisterInput) => {
+  const confirmationToken = randomBytes(32).toString("hex");
+  
   const createdUser = await prisma.$transaction(async (tx) => {
-    const user = await createUserRespository(body, tx);
+    const user = await createUserRespository({ ...body, confirmationToken }, tx);
 
     if (body.role === "INSTRUCTOR") {
       await createInstructorRespository(body, user.id, tx);
@@ -73,4 +79,18 @@ export const updateRefreshToken = async (userId: number, refreshToken: string) =
 
 export const getUserByIdWithRefreshToken = async (userId: number) => {
   return await getUserByIdWithRefreshTokenRepository(userId);
+};
+
+export const confirmUserEmail = async (confirmationToken: string) => {
+  const user = await getUserByConfirmationTokenRepository(confirmationToken);
+  
+  if (!user) {
+    return null;
+  }
+  
+  return await confirmUserEmailRepository(confirmationToken);
+};
+
+export const getUserByConfirmationToken = async (confirmationToken: string) => {
+  return await getUserByConfirmationTokenRepository(confirmationToken);
 };

@@ -3,8 +3,9 @@ import { validateData } from "../../middleware/validationMiddleware";
 import { driverRegistrationSchema, instructorRegistrationSchema, userAuthResponseSchema, userLoginSchema } from "../../schemas/userSchema";
 import authMiddleware from "../../middleware/securityMiddleware";
 import { generateRefreshToken, generateToken, validateRefreshToken } from "../../utils/generateToken";
-import { createUser, getUser, updateRefreshToken, getUserByIdWithRefreshToken } from "../../services/user.service";
+import { createUser, getUser, updateRefreshToken, getUserByIdWithRefreshToken, confirmUserEmail, getUserByConfirmationToken } from "../../services/user.service";
 import { comparePassword, hashPassword } from "../../utils/bcrypt";
+import { sendConfirmationEmail } from "../../utils/email";
 import { BAD_REQUEST, StatusCodes } from "http-status-codes";
 import HttpException from "../../models/http-exception.model";
 import { UnauthorizedError } from "express-jwt";
@@ -72,6 +73,11 @@ router.post("/login", validateData(userLoginSchema), async (req: Request, res: R
 
     if (!user) {
       throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Usuário não encontrado" });
+    }
+
+    // Check if email is confirmed
+    if (!user.isConfirmed) {
+      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Por favor, confirme seu email antes de fazer login" });
     }
 
     const passwordMatch = await comparePassword(req.body.password, user.password);
@@ -167,24 +173,17 @@ router.post("/register-driver", validateData(driverRegistrationSchema), async (r
       role: "DRIVER",
     });
 
-    const accessToken = generateToken(newUser.id, newUser.name);
-    const refresh_token = generateRefreshToken(newUser.id, newUser.name);
+    // Send confirmation email
+    await sendConfirmationEmail(newUser.email, newUser.name, newUser.confirmationToken!);
 
-    await updateRefreshToken(newUser.id, refresh_token);
-
-    res.cookie("refresh_token", refresh_token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      maxAge: 45 * 24 * 60 * 60 * 1000,
+    res.status(StatusCodes.CREATED).json({
+      message: "Usuário criado com sucesso. Por favor, confirme seu email.",
+      user: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+      },
     });
-
-    const response = userAuthResponseSchema.parse({
-      ...newUser,
-      accessToken,
-    });
-
-    res.json(response);
   } catch (error) {
     next(error);
   }
@@ -254,24 +253,17 @@ router.post("/register-instructor", validateData(instructorRegistrationSchema), 
       role: "INSTRUCTOR",
     });
 
-    const accessToken = generateToken(newUser.id, newUser.name);
-    const refresh_token = generateRefreshToken(newUser.id, newUser.name);
+    // Send confirmation email
+    await sendConfirmationEmail(newUser.email, newUser.name, newUser.confirmationToken!);
 
-    await updateRefreshToken(newUser.id, refresh_token);
-
-    res.cookie("refresh_token", refresh_token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      maxAge: 45 * 24 * 60 * 60 * 1000,
+    res.status(StatusCodes.CREATED).json({
+      message: "Usuário criado com sucesso. Por favor, confirme seu email.",
+      user: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+      },
     });
-
-    const response = userAuthResponseSchema.parse({
-      ...newUser,
-      accessToken,
-    });
-
-    res.json(response);
   } catch (error) {
     next(error);
   }
@@ -351,6 +343,47 @@ router.post("/logout", async (req: Request, res: Response, next: NextFunction) =
     res.json({ message: "Logout realizado com sucesso" });
   } catch (error) {
     res.clearCookie("refresh_token");
+    next(error);
+  }
+});
+
+
+/**
+ * @swagger
+ * /api/auth/confirm-email:
+ *   get:
+ *     summary: Confirm user email
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Email confirmed successfully
+ *       400:
+ *         description: Invalid or expired token
+ */
+router.get("/confirm-email", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.query.token as string;
+
+    if (!token) {
+      throw new HttpException(StatusCodes.BAD_REQUEST, "Token de confirmação não fornecido");
+    }
+
+    const user = await getUserByConfirmationToken(token);
+
+    if (!user) {
+      throw new HttpException(StatusCodes.BAD_REQUEST, "Token de confirmação inválido ou expirado");
+    }
+
+    await confirmUserEmail(token);
+
+    res.json({ message: "Email confirmado com sucesso!" });
+  } catch (error) {
     next(error);
   }
 });

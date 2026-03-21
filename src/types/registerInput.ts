@@ -8,4 +8,5 @@ export interface UserRegisterInput {
   gender: "MALE" | "FEMALE";
   city: string;
   state: string;
+  confirmationToken?: string;
 }
