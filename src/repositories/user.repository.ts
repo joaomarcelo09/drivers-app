@@ -17,6 +17,7 @@ export const createUserRespository = async (body: UserRegisterInput, tx?: Prisma
       gender: body.gender,
       city: body.city,
       state: body.state,
+      confirmationToken: body.confirmationToken,
     },
   });
 };
@@ -38,6 +39,7 @@ export const getMeUserRepository = async (userId: number) => {
       role: true,
       gender: true,
       photo: true,
+      isConfirmed: true,
       driver: {
         select: {
           id: true,
@@ -55,7 +57,6 @@ export const getMeUserRepository = async (userId: number) => {
           longitude: true,
           rangeKm: true,
           hasVehicle: true,
-          vehicleType: true,
           rating: true,
         },
       },
@@ -148,6 +149,7 @@ export const updateUserRepository = async (
       role: true,
       gender: true,
       photo: true,
+      isConfirmed: true,
       driver: {
         select: {
           id: true,
@@ -163,7 +165,6 @@ export const updateUserRepository = async (
           active: true,
           latitude: true,
           longitude: true,
-          vehicleType: true,
           rating: true,
           rangeKm: true,
           hasVehicle: true,
@@ -189,5 +190,28 @@ export const getUserByIdWithRefreshTokenRepository = async (userId: number) => {
       email: true,
       refreshToken: true,
     },
+  });
+};
+
+export const updateConfirmationTokenRepository = async (userId: number, confirmationToken: string) => {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { confirmationToken },
+  });
+};
+
+export const confirmUserEmailRepository = async (confirmationToken: string) => {
+  return await prisma.user.updateMany({
+    where: { confirmationToken },
+    data: {
+      confirmationToken: null,
+      isConfirmed: true,
+    },
+  });
+};
+
+export const getUserByConfirmationTokenRepository = async (confirmationToken: string) => {
+  return await prisma.user.findFirst({
+    where: { confirmationToken },
   });
 };

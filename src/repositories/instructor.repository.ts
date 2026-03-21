@@ -11,16 +11,25 @@ export const createInstructorRespository = async (body: any, userId: number, tx?
       priceHour: body.priceHour,
       cnh: body.cnh,
       hasVehicle: body.hasVehicle,
-      vehicleType: body.vehicleType,
       rating: body.rating,
       latitude: body.coordinates.lat,
       longitude: body.coordinates.lng,
       bio: body.bio,
+      rangeKm: body.rangeKm || 0,
       instructorCategories: body.categoriesId?.length
         ? {
             createMany: {
               data: body.categoriesId.map((id: number) => ({
                 categoryId: id,
+              })),
+            },
+          }
+        : undefined,
+      instructorVehicles: body.vehicleTypesId?.length
+        ? {
+            createMany: {
+              data: body.vehicleTypesId.map((id: number) => ({
+                vehicleTypeId: id,
               })),
             },
           }
@@ -43,7 +52,6 @@ export const getInstructorsRepository = async (where: InstructorWhereInput) => {
       bio: true,
       cnh: true,
       hasVehicle: true,
-      vehicleType: true,
       rating: true,
       active: true,
       latitude: true,
@@ -71,6 +79,15 @@ export const getInstructorsRepository = async (where: InstructorWhereInput) => {
           },
         },
       },
+      instructorVehicles: {
+        select: {
+          vehicleType: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
     },
   });
 };
@@ -84,7 +101,6 @@ export const getInstructorRepository = async (where: InstructorWhereInput) => {
       bio: true,
       cnh: true,
       hasVehicle: true,
-      vehicleType: true,
       rating: true,
       active: true,
       latitude: true,
@@ -108,6 +124,15 @@ export const getInstructorRepository = async (where: InstructorWhereInput) => {
           licenseCategory: {
             select: {
               acronym: true,
+            },
+          },
+        },
+      },
+      instructorVehicles: {
+        select: {
+          vehicleType: {
+            select: {
+              name: true,
             },
           },
         },

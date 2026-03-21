@@ -17,7 +17,7 @@ export const instructorRegistrationSchema = userRegistrationSchema.extend({
   categoriesId: z.array(z.number()),
   priceHour: z.number(),
   hasVehicle: z.boolean(),
-  vehicleType: z.string().optional(),
+  vehicleType: z.array(z.number()),
   cnh: z.string(),
   bio: z.string(),
   coordinates: z.object({ lat: z.number(), lng: z.number() }),

@@ -14,20 +14,22 @@ datasource db {
 }
 
 model User {
-  id          Int         @id @default(autoincrement())
-  email       String      @unique
-  name        String
-  password    String
-  telephone   String      @default("")
-  role        Role        @default(DRIVER)
-  photo       String      @default("")
-  gender      Gender      @default(MALE)
-  city        String      @default("")
-  state       String      @default("")
-  refreshToken String?    @default("")
-  createdAt   DateTime    @default(now())
-  instructor  Instructor?
-  driver      Driver?
+  id                Int         @id @default(autoincrement())
+  email             String      @unique
+  name              String
+  password          String
+  telephone         String      @default("")
+  role              Role        @default(DRIVER)
+  photo             String      @default("")
+  gender            Gender      @default(MALE)
+  city              String      @default("")
+  state             String      @default("")
+  refreshToken      String?     @default("")
+  confirmationToken String?
+  isConfirmed       Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  instructor        Instructor?
+  driver            Driver?
 }
 
 model Instructor {
@@ -39,7 +41,6 @@ model Instructor {
   cnh         String   @default("")
   active      Boolean
   hasVehicle  Boolean  @default(false)
-  vehicleType String   @default("")
   rating      Float    @default(0)
   rangeKm     Float    @default(0)
   createdAt   DateTime @default(now())
@@ -47,6 +48,23 @@ model Instructor {
 
   user                 User                 @relation(fields: [userId], references: [id])
   instructorCategories InstructorCategory[]
+  instructorVehicles   InstructorVehicle[]
+}
+
+model VehicleType {
+  id                   Int                  @id @default(autoincrement())
+  id_seeder            Int                  @unique
+  name                 String               @unique
+  description          String
+  instructorVehicles   InstructorVehicle[]
+}
+
+model InstructorVehicle {
+  id            Int         @id @default(autoincrement())
+  instructorId  Int
+  vehicleTypeId Int
+  instructor    Instructor  @relation(fields: [instructorId], references: [id])
+  vehicleType   VehicleType @relation(fields: [vehicleTypeId], references: [id])
 }
 
 model Driver {
