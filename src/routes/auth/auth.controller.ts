@@ -8,7 +8,6 @@ import { comparePassword, hashPassword } from "../../utils/bcrypt";
 import { sendConfirmationEmail } from "../../utils/email";
 import { BAD_REQUEST, StatusCodes } from "http-status-codes";
 import HttpException from "../../models/http-exception.model";
-import { UnauthorizedError } from "express-jwt";
 
 const router = Router();
 const isProduction = process.env.NODE_ENV === "production";

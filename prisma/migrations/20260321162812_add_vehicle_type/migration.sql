@@ -5,8 +5,11 @@
 
 */
 -- AlterTable
-ALTER TABLE "Instructor" DROP COLUMN "vehicleType",
-ADD COLUMN     "rangeKm" DOUBLE PRECISION NOT NULL DEFAULT 0;
+ALTER TABLE "Instructor" DROP COLUMN "vehicleType";
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "confirmationToken" TEXT,
+ADD COLUMN     "isConfirmed" BOOLEAN NOT NULL DEFAULT false;
 
 -- CreateTable
 CREATE TABLE "VehicleType" (
