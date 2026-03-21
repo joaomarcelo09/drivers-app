@@ -42,12 +42,22 @@ app.use((err: Error | HttpException, req: express.Request, res: express.Response
   if (err && err.name === "UnauthorizedError") {
     return res.status(401).json({
       status: "error",
-      message: "missing authorization credentials",
+      error: "missing authorization credentials",
     });
     // @ts-ignore
   } else if (err && err.errorCode) {
     // @ts-ignore
-    res.status(err.errorCode).json(err.message);
+    const status = err.errorCode;
+    // @ts-ignore
+    const message = err.message;
+    // Handle object format { error: "..." } or string format
+    if (typeof message === 'object' && message !== null && 'error' in message) {
+      res.status(status).json(message);
+    } else if (typeof message === 'object' && message !== null) {
+      res.status(status).json(message);
+    } else {
+      res.status(status).json({ error: message });
+    }
   } else if (err) {
     res.status(500).json(err.message);
   }

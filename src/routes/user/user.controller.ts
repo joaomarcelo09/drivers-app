@@ -1,4 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
+import { StatusCodes } from "http-status-codes";
+import HttpException from "../../models/http-exception.model";
 import authMiddleware from "../../middleware/securityMiddleware";
 import { getMeUser, updateUser } from "../../services/user.service";
 import { userResponseSchema, updateUserSchema } from "../../schemas/userSchema";
@@ -25,7 +27,7 @@ router.get("/me", async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.auth?.user?.id;
 
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Unauthorized" });
     }
 
     const user = await getMeUser(userId);
@@ -94,7 +96,7 @@ router.put("/me", async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.auth?.user?.id;
 
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Unauthorized" });
     }
 
     const data = updateUserSchema.parse(req.body);

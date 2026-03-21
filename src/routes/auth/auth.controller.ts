@@ -162,7 +162,7 @@ router.post("/register-driver", validateData(driverRegistrationSchema), async (r
     const existingUser = await getUser({ email: req.body.email });
 
     if (existingUser) {
-      throw new HttpException(BAD_REQUEST, "Usuário existente com esse email");
+      throw new HttpException(BAD_REQUEST, { error: "Usuário existente com esse email" });
     }
 
     req.body.password = await hashPassword(req.body.password);
@@ -242,7 +242,7 @@ router.post("/register-instructor", validateData(instructorRegistrationSchema), 
     const existingUser = await getUser({ email: req.body.email });
 
     if (existingUser) {
-      throw new HttpException(BAD_REQUEST, "Usuário existente com esse email");
+      throw new HttpException(BAD_REQUEST, { error: "Usuário existente com esse email" });
     }
 
     req.body.password = await hashPassword(req.body.password);
@@ -290,19 +290,19 @@ router.get("/refresh-token", async (req: Request, res: Response, next: NextFunct
     const refresh_token = req.cookies.refresh_token;
 
     if (!refresh_token) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, "Refresh token não encontrado");
+      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Refresh token não encontrado" });
     }
 
     const { user } = validateRefreshToken(refresh_token);
 
     if (!user?.id || !user?.name) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, "Refresh token inválido");
+      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Refresh token inválido" });
     }
 
     const dbUser = await getUserByIdWithRefreshToken(user.id);
 
     if (!dbUser || dbUser.refreshToken !== refresh_token) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, "Refresh token inválido ou expirado");
+      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Refresh token inválido ou expirado" });
     }
 
     const access_token = generateToken(user.id, user.name);
@@ -370,13 +370,13 @@ router.get("/confirm-email", async (req: Request, res: Response, next: NextFunct
     const token = req.query.token as string;
 
     if (!token) {
-      throw new HttpException(StatusCodes.BAD_REQUEST, "Token de confirmação não fornecido");
+      throw new HttpException(StatusCodes.BAD_REQUEST, { error: "Token de confirmação não fornecido" });
     }
 
     const user = await getUserByConfirmationToken(token);
 
     if (!user) {
-      throw new HttpException(StatusCodes.BAD_REQUEST, "Token de confirmação inválido ou expirado");
+      throw new HttpException(StatusCodes.BAD_REQUEST, { error: "Token de confirmação inválido ou expirado" });
     }
 
     await confirmUserEmail(token);
