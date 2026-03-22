@@ -9,7 +9,6 @@ import {
   updateUserRepository,
   updateRefreshTokenRepository,
   getUserByIdWithRefreshTokenRepository,
-  updateConfirmationTokenRepository,
   confirmUserEmailRepository,
   getUserByConfirmationTokenRepository,
 } from "../repositories/user.repository";
@@ -18,7 +17,7 @@ import { randomBytes } from "crypto";
 
 export const createUser = async (body: UserRegisterInput) => {
   const confirmationToken = randomBytes(32).toString("hex");
-  
+
   const createdUser = await prisma.$transaction(async (tx) => {
     const user = await createUserRespository({ ...body, confirmationToken }, tx);
 
@@ -41,7 +40,17 @@ export const getUser = async (where: UserWhereInput) => {
 };
 
 export const getMeUser = async (userId: number) => {
-  return await getMeUserRepository(userId);
+  const user = await getMeUserRepository(userId);
+
+  if (user?.instructor) {
+    const { instructorVehicles, ...instructorData } = user.instructor;
+    (user as any).instructor = {
+      ...instructorData,
+      vehicleType: instructorVehicles?.map((iv: any) => iv.vehicleType?.id) || [],
+    };
+  }
+
+  return user;
 };
 
 export const updateUser = async (
@@ -65,7 +74,7 @@ export const updateUser = async (
     latitude?: number;
     longitude?: number;
     hasVehicle?: boolean;
-    vehicleType?: string;
+    vehicleType?: number[];
     rating?: number;
     rangeKm?: number;
   },
@@ -83,11 +92,11 @@ export const getUserByIdWithRefreshToken = async (userId: number) => {
 
 export const confirmUserEmail = async (confirmationToken: string) => {
   const user = await getUserByConfirmationTokenRepository(confirmationToken);
-  
+
   if (!user) {
     return null;
   }
-  
+
   return await confirmUserEmailRepository(confirmationToken);
 };
 

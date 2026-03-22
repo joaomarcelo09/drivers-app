@@ -57,6 +57,16 @@ export const getMeUserRepository = async (userId: number) => {
           longitude: true,
           rangeKm: true,
           hasVehicle: true,
+          instructorVehicles: {
+            select: {
+              vehicleType: {
+                select: {
+                  name: true,
+                  id: true,
+                },
+              },
+            },
+          },
           rating: true,
         },
       },
@@ -88,7 +98,7 @@ export const updateUserRepository = async (
     latitude?: number;
     longitude?: number;
     hasVehicle?: boolean;
-    vehicleType?: string;
+    vehicleType?: number[];
     rating?: number;
     rangeKm?: number;
   },
@@ -168,6 +178,15 @@ export const updateUserRepository = async (
           rating: true,
           rangeKm: true,
           hasVehicle: true,
+          instructorVehicles: {
+            select: {
+              vehicleType: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
         },
       },
     },

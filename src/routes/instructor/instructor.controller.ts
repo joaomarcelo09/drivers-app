@@ -25,7 +25,7 @@ const transformInstructor = (instructor: any) => {
     distance: 0,
     rangeKm: instructor.rangeKm || 0,
     pricePerHour: instructor.priceHour,
-    vehicleTypes: instructor.instructorVehicles?.map((iv: any) => iv.vehicleType?.name) || [],
+    vehicleTypes: instructor.instructorVehicles?.map((iv: any) => iv.vehicleType?.id) || [],
     categories: instructor.instructorCategories?.map((ic: any) => ic.licenseCategory?.acronym) || [],
     gender: instructor.user?.gender,
     bio: instructor.bio,

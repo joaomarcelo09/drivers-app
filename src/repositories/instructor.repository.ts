@@ -25,10 +25,10 @@ export const createInstructorRespository = async (body: any, userId: number, tx?
             },
           }
         : undefined,
-      instructorVehicles: body.vehicleTypesId?.length
+      instructorVehicles: body.vehicleType?.length
         ? {
             createMany: {
-              data: body.vehicleTypesId.map((id: number) => ({
+              data: body.vehicleType.map((id: number) => ({
                 vehicleTypeId: id,
               })),
             },
@@ -83,7 +83,7 @@ export const getInstructorsRepository = async (where: InstructorWhereInput) => {
         select: {
           vehicleType: {
             select: {
-              name: true,
+              id: true,
             },
           },
         },
@@ -132,7 +132,7 @@ export const getInstructorRepository = async (where: InstructorWhereInput) => {
         select: {
           vehicleType: {
             select: {
-              name: true,
+              id: true,
             },
           },
         },
