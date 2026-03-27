@@ -34,7 +34,7 @@ model User {
 
 model Instructor {
   id          Int      @id @default(autoincrement())
-  priceHour   Decimal
+  priceHour   Float
   latitude    Float?
   longitude   Float?
   bio         String
