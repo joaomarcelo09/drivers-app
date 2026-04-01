@@ -3,7 +3,14 @@ import { validateData } from "../../middleware/validationMiddleware";
 import { driverRegistrationSchema, instructorRegistrationSchema, userAuthResponseSchema, userLoginSchema } from "../../schemas/userSchema";
 import authMiddleware from "../../middleware/securityMiddleware";
 import { generateRefreshToken, generateToken, validateRefreshToken } from "../../utils/generateToken";
-import { createUser, getUser, updateRefreshToken, getUserByIdWithRefreshToken, confirmUserEmail, getUserByConfirmationToken } from "../../services/user.service";
+import {
+  createUser,
+  getUser,
+  updateRefreshToken,
+  getUserByIdWithRefreshToken,
+  confirmUserEmail,
+  getUserByConfirmationToken,
+} from "../../services/user.service";
 import { comparePassword, hashPassword } from "../../utils/bcrypt";
 import { sendConfirmationEmail } from "../../utils/email";
 import { BAD_REQUEST, StatusCodes } from "http-status-codes";
@@ -53,6 +60,7 @@ const normalizeInstructorRegistrationBody = (body: Request["body"]) => {
     gender: typeof body.gender === "string" ? body.gender.toUpperCase() : body.gender,
     categoriesId: parseJsonArray(body.categoriesId).map(Number),
     priceHour: Number(body.priceHour),
+    rangeKm: Number(body.rangeKm),
     hasVehicle: body.hasVehicle === "true" || body.hasVehicle === true,
     vehicleType: parseJsonArray(body.vehicleType).map(Number),
     coordinates: {
@@ -432,7 +440,6 @@ router.post("/logout", async (req: Request, res: Response, next: NextFunction) =
   }
 });
 
-
 /**
  * @swagger
  * /api/auth/confirm-email:
@@ -467,7 +474,20 @@ router.get("/confirm-email", async (req: Request, res: Response, next: NextFunct
 
     await confirmUserEmail(token);
 
-    res.json({ message: "Email confirmado com sucesso!" });
+    const accessToken = generateToken(user.id, user.name);
+    const refresh_token = generateRefreshToken(user.id, user.name);
+
+    await updateRefreshToken(user.id, refresh_token);
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 45 * 24 * 60 * 60 * 1000,
+    });
+
+    const response = userAuthResponseSchema.parse({ ...user, accessToken });
+    res.json(response);
   } catch (error) {
     next(error);
   }
