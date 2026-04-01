@@ -114,6 +114,7 @@ router.put("/me", async (req: Request, res: Response, next: NextFunction) => {
       data.driver,
       data.instructor,
     );
+    console.log('response')
 
     const response = userResponseSchema.parse(user);
     res.json(response);

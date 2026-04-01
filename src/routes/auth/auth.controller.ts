@@ -8,9 +8,59 @@ import { comparePassword, hashPassword } from "../../utils/bcrypt";
 import { sendConfirmationEmail } from "../../utils/email";
 import { BAD_REQUEST, StatusCodes } from "http-status-codes";
 import HttpException from "../../models/http-exception.model";
+import { photoUploadMiddleware } from "../../middleware/uploadMiddleware";
+import { uploadUserPhoto } from "../../utils/firebaseStorage";
 
 const router = Router();
 const isProduction = process.env.NODE_ENV === "production";
+
+const parseJsonArray = (value: unknown) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+};
+
+const normalizeDriverRegistrationBody = (body: Request["body"]) => ({
+  ...body,
+  gender: typeof body.gender === "string" ? body.gender.toUpperCase() : body.gender,
+});
+
+const normalizeInstructorRegistrationBody = (body: Request["body"]) => {
+  const coordinates =
+    typeof body.coordinates === "string"
+      ? JSON.parse(body.coordinates)
+      : {
+          lat: Number(body?.coordinates?.lat),
+          lng: Number(body?.coordinates?.lng),
+        };
+
+  return {
+    ...body,
+    gender: typeof body.gender === "string" ? body.gender.toUpperCase() : body.gender,
+    categoriesId: parseJsonArray(body.categoriesId).map(Number),
+    priceHour: Number(body.priceHour),
+    hasVehicle: body.hasVehicle === "true" || body.hasVehicle === true,
+    vehicleType: parseJsonArray(body.vehicleType).map(Number),
+    coordinates: {
+      lat: Number(coordinates.lat),
+      lng: Number(coordinates.lng),
+    },
+  };
+};
 
 /**
  * @swagger
@@ -157,36 +207,52 @@ router.post("/login", validateData(userLoginSchema), async (req: Request, res: R
  *       400:
  *         description: User already exists
  */
-router.post("/register-driver", validateData(driverRegistrationSchema), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const existingUser = await getUser({ email: req.body.email });
-
-    if (existingUser) {
-      throw new HttpException(BAD_REQUEST, { error: "Usuário existente com esse email" });
+router.post(
+  "/register-driver",
+  photoUploadMiddleware.single("photo"),
+  async (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      req.body = normalizeDriverRegistrationBody(req.body);
+      next();
+    } catch (error) {
+      next(error);
     }
+  },
+  validateData(driverRegistrationSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const existingUser = await getUser({ email: req.body.email });
 
-    req.body.password = await hashPassword(req.body.password);
+      if (existingUser) {
+        throw new HttpException(BAD_REQUEST, { error: "Usuário existente com esse email" });
+      }
 
-    const newUser = await createUser({
-      ...driverRegistrationSchema.parse(req.body),
-      role: "DRIVER",
-    });
+      req.body.password = await hashPassword(req.body.password);
+      const photo = req.file ? await uploadUserPhoto(req.file, req.body.email) : "";
 
-    // Send confirmation email
-    await sendConfirmationEmail(newUser.email, newUser.name, newUser.confirmationToken!);
+      const newUser = await createUser({
+        ...driverRegistrationSchema.parse(req.body),
+        photo,
+        role: "DRIVER",
+      });
 
-    res.status(StatusCodes.CREATED).json({
-      message: "Usuário criado com sucesso. Por favor, confirme seu email.",
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+      // Send confirmation email
+      await sendConfirmationEmail(newUser.email, newUser.name, newUser.confirmationToken!);
+
+      res.status(StatusCodes.CREATED).json({
+        message: "Usuário criado com sucesso. Por favor, confirme seu email.",
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          photo: newUser.photo,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 /**
  * @swagger
@@ -237,36 +303,56 @@ router.post("/register-driver", validateData(driverRegistrationSchema), async (r
  *       400:
  *         description: User already exists
  */
-router.post("/register-instructor", validateData(instructorRegistrationSchema), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const existingUser = await getUser({ email: req.body.email });
-
-    if (existingUser) {
-      throw new HttpException(BAD_REQUEST, { error: "Usuário existente com esse email" });
+router.post(
+  "/register-instructor",
+  photoUploadMiddleware.single("photo"),
+  async (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      req.body = normalizeInstructorRegistrationBody(req.body);
+      next();
+    } catch (error) {
+      next(error);
     }
+  },
+  validateData(instructorRegistrationSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const existingUser = await getUser({ email: req.body.email });
 
-    req.body.password = await hashPassword(req.body.password);
+      if (existingUser) {
+        throw new HttpException(BAD_REQUEST, { error: "Usuário existente com esse email" });
+      }
 
-    const newUser = await createUser({
-      ...instructorRegistrationSchema.parse(req.body),
-      role: "INSTRUCTOR",
-    });
+      if (!req.file) {
+        throw new HttpException(BAD_REQUEST, { error: "A foto do usuário é obrigatória" });
+      }
 
-    // Send confirmation email
-    await sendConfirmationEmail(newUser.email, newUser.name, newUser.confirmationToken!);
+      req.body.password = await hashPassword(req.body.password);
+      const photo = await uploadUserPhoto(req.file, req.body.email);
 
-    res.status(StatusCodes.CREATED).json({
-      message: "Usuário criado com sucesso. Por favor, confirme seu email.",
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+      const newUser = await createUser({
+        ...instructorRegistrationSchema.parse(req.body),
+        photo,
+        role: "INSTRUCTOR",
+      });
+
+      // Send confirmation email
+      await sendConfirmationEmail(newUser.email, newUser.name, newUser.confirmationToken!);
+
+      res.status(StatusCodes.CREATED).json({
+        message: "Usuário criado com sucesso. Por favor, confirme seu email.",
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          photo: newUser.photo,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 /**
  * @swagger
