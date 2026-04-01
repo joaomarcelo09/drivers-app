@@ -101,7 +101,7 @@ export const updateUserRepository = async (
     vehicleType?: number[];
     rating?: number;
     rangeKm?: number;
-  },
+  }
 ) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -138,10 +138,19 @@ export const updateUserRepository = async (
         ...(instructorData.active !== undefined && { active: instructorData.active }),
         ...(instructorData.latitude !== undefined && { latitude: instructorData.latitude }),
         ...(instructorData.longitude !== undefined && { longitude: instructorData.longitude }),
-        ...(instructorData.vehicleType !== undefined && { vehicleType: instructorData.vehicleType }),
         ...(instructorData.rating !== undefined && { rating: instructorData.rating }),
         ...(instructorData.rangeKm !== undefined && { rangeKm: instructorData.rangeKm }),
         ...(instructorData.hasVehicle !== undefined && { hasVehicle: instructorData.hasVehicle }),
+
+        // ✅ FIXED PART
+        ...(instructorData.vehicleType !== undefined && {
+          instructorVehicles: {
+            deleteMany: {}, // remove all existing
+            create: instructorData.vehicleType.map((id: number) => ({
+              vehicleTypeId: id,
+            })),
+          },
+        }),
       },
     };
   }

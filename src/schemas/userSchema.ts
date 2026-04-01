@@ -74,23 +74,14 @@ export const updateUserSchema = z.object({
   state: z.string().optional(),
   gender: z.enum(["MALE", "FEMALE"]).optional(),
   photo: z.string().optional(),
-  driver: z
-    .object({
-      active: z.boolean().optional(),
-    })
-    .optional(),
-  instructor: z
-    .object({
-      priceHour: z.number().optional(),
-      bio: z.string().optional(),
-      cnh: z.string().optional(),
-      active: z.boolean().optional(),
-      latitude: z.number().optional(),
-      longitude: z.number().optional(),
-      hasVehicle: z.boolean().optional(),
-      vehicleType: z.array(z.number()).optional(),
-      rating: z.number().optional(),
-      rangeKm: z.number().optional(),
-    })
-    .optional(),
+  priceHour: z.number().optional(),
+  bio: z.string().optional(),
+  cnh: z.string().optional(),
+  active: z.boolean().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  hasVehicle: z.boolean().optional(),
+  vehicleType: z.array(z.number()).optional(),
+  rating: z.number().optional(),
+  rangeKm: z.number().optional(),
 });

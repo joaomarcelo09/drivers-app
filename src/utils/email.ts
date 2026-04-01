@@ -7,8 +7,8 @@ if (process.env.BREVO_API_KEY) {
 }
 
 export const sendConfirmationEmail = async (email: string, name: string, confirmationToken: string) => {
-  const appUrl = process.env.APP_URL || "http://localhost:3000";
-  const confirmUrl = `${appUrl}/api/auth/confirm-email?token=${confirmationToken}`;
+  const appUrl = process.env.CONFIRM_APP_URL || "http://localhost:3000";
+  const confirmUrl = `${appUrl}/confirmar-email?token=${confirmationToken}`;
   const senderEmail = process.env.EMAIL_FROM || "no-reply@yourapp.com";
   const senderName = process.env.EMAIL_FROM_NAME || "DriveApp";
 

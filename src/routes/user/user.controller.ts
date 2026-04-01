@@ -101,6 +101,22 @@ router.put("/me", async (req: Request, res: Response, next: NextFunction) => {
 
     const data = updateUserSchema.parse(req.body);
 
+    const dataDriver = {
+      active: data.active,
+    };
+
+    const dataInstructor = {
+      priceHour: data.priceHour,
+      bio: data.bio,
+      active: data.active,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      hasVehicle: data.hasVehicle,
+      vehicleType: data.vehicleType,
+      rating: data.rating,
+      rangeKm: data.rangeKm,
+    };
+
     const user = await updateUser(
       userId,
       {
@@ -111,8 +127,8 @@ router.put("/me", async (req: Request, res: Response, next: NextFunction) => {
         gender: data.gender,
         photo: data.photo,
       },
-      data.driver,
-      data.instructor,
+      dataDriver,
+      dataInstructor
     );
     console.log('response')
 
