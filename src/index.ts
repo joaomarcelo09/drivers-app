@@ -51,9 +51,9 @@ app.use((err: Error | HttpException, req: express.Request, res: express.Response
     // @ts-ignore
     const message = err.message;
     // Handle object format { error: "..." } or string format
-    if (typeof message === 'object' && message !== null && 'error' in message) {
+    if (typeof message === "object" && message !== null && "error" in message) {
       res.status(status).json(message);
-    } else if (typeof message === 'object' && message !== null) {
+    } else if (typeof message === "object" && message !== null) {
       res.status(status).json(message);
     } else {
       res.status(status).json({ error: message });

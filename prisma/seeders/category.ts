@@ -5,51 +5,44 @@ const categories = [
   {
     id: 1,
     acronym: Category.A,
-    description: 'A',
+    description: "A",
     id_seeder: 1,
   },
   {
     id: 2,
     acronym: Category.B,
-    description: 'B',
+    description: "B",
     id_seeder: 2,
   },
   {
     id: 3,
     acronym: Category.C,
-    description: 'C',
+    description: "C",
     id_seeder: 3,
   },
   {
     id: 4,
     acronym: Category.D,
-    description: 'D',
+    description: "D",
     id_seeder: 4,
   },
   {
     id: 5,
     acronym: Category.E,
-    description: 'E',
+    description: "E",
     id_seeder: 5,
   },
 ];
 
 export async function licenseCategoryMain(tx?) {
-
   // Get current data from DB
   const dbCategories = await prisma.licenseCategory.findMany();
 
-  const toDelete = dbCategories.filter(
-    (db) => !categories.some((cat) => cat.id_seeder === db.id_seeder),
-  );
+  const toDelete = dbCategories.filter((db) => !categories.some((cat) => cat.id_seeder === db.id_seeder));
 
-  const toAdd = categories.filter(
-    (cat) => !dbCategories.some((db) => db.id_seeder === cat.id_seeder),
-  );
+  const toAdd = categories.filter((cat) => !dbCategories.some((db) => db.id_seeder === cat.id_seeder));
 
-  const toUpdate = categories.filter((cat) =>
-    dbCategories.some((db) => db.id_seeder === cat.id_seeder),
-  );
+  const toUpdate = categories.filter((cat) => dbCategories.some((db) => db.id_seeder === cat.id_seeder));
 
   const requests: Promise<any>[] = [];
 
@@ -76,9 +69,7 @@ export async function licenseCategoryMain(tx?) {
   // UPDATE
   if (toUpdate.length) {
     const updateRequests = toUpdate.map((cat) => {
-      const dbItem = dbCategories.find(
-        (db) => db.id_seeder === cat.id_seeder,
-      );
+      const dbItem = dbCategories.find((db) => db.id_seeder === cat.id_seeder);
 
       return prisma.licenseCategory.update({
         where: { id: dbItem?.id },
@@ -95,6 +86,6 @@ export async function licenseCategoryMain(tx?) {
   await Promise.all(requests);
 
   const added = await prisma.licenseCategory.findMany();
-  console.log('added', added);
+  console.log("added", added);
   return true;
 }

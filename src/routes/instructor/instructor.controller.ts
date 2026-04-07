@@ -6,6 +6,24 @@ import { InstructorWhereInput } from "../../../generated/prisma/models";
 
 const router = Router();
 
+const parseQueryList = (value: unknown) => {
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((item) => String(item).split(","))
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
 const transformInstructor = (instructor: any) => {
   if (!instructor) return null;
 
@@ -121,7 +139,22 @@ const transformInstructor = (instructor: any) => {
  */
 router.get("/", authMiddleware.optional, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { bio, active, minPrice, maxPrice, lat, lng, radius = 5, minRating, maxRating, gender, categories, rangeKm, vehicleTypes } = req.query;
+    const {
+      bio,
+      active,
+      minPrice,
+      maxPrice,
+      lat,
+      lng,
+      radius = 5,
+      minRating,
+      maxRating,
+      gender,
+      categories,
+      category,
+      rangeKm,
+      vehicleTypes,
+    } = req.query;
 
     const latitude = Number(lat);
     const longitude = Number(lng);
@@ -189,8 +222,9 @@ router.get("/", authMiddleware.optional, async (req: Request, res: Response, nex
       });
     }
 
-    if (categories) {
-      const categoryList = (categories as string).split(",").map((c: string) => c.trim().toUpperCase());
+    const categoryList = parseQueryList(categories ?? category).map((item) => item.toUpperCase());
+
+    if (categoryList.length > 0) {
       conditions.push({
         instructorCategories: {
           some: {
@@ -204,8 +238,11 @@ router.get("/", authMiddleware.optional, async (req: Request, res: Response, nex
       });
     }
 
-    if (vehicleTypes) {
-      const vehicleTypeList = (vehicleTypes as string).split(",").map((v: string) => Number(v.trim()));
+    const vehicleTypeList = parseQueryList(vehicleTypes)
+      .map((item) => Number(item))
+      .filter((item) => Number.isFinite(item));
+
+    if (vehicleTypeList.length > 0) {
       conditions.push({
         instructorVehicles: {
           some: {

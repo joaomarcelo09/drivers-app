@@ -108,11 +108,12 @@ router.put("/me", async (req: Request, res: Response, next: NextFunction) => {
     const dataInstructor = {
       priceHour: data.priceHour,
       bio: data.bio,
+      cnh: data.cnh,
       active: data.active,
       latitude: data.latitude,
       longitude: data.longitude,
-      hasVehicle: data.hasVehicle,
-      vehicleType: data.vehicleType,
+      vehicleCategories: data.vehicleCategories,
+      teachingCategories: data.teachingCategories,
       rating: data.rating,
       rangeKm: data.rangeKm,
     };
@@ -128,10 +129,8 @@ router.put("/me", async (req: Request, res: Response, next: NextFunction) => {
         photo: data.photo,
       },
       dataDriver,
-      dataInstructor
+      dataInstructor,
     );
-    console.log('response')
-
     const response = userResponseSchema.parse(user);
     res.json(response);
   } catch (error) {

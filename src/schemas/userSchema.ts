@@ -13,10 +13,11 @@ const userRegistrationSchema = z.object({
 export const driverRegistrationSchema = userRegistrationSchema.extend({});
 
 export const instructorRegistrationSchema = userRegistrationSchema.extend({
-  categoriesId: z.array(z.number()),
-  priceHour: z.number(),
+  teachingCategories: z.array(z.number()),
+  priceHour: z.number().max(1000),
+  rangeKm: z.number(),
   hasVehicle: z.boolean(),
-  vehicleType: z.array(z.number()),
+  vehicleCategories: z.array(z.number()),
   cnh: z.string(),
   bio: z.string(),
   coordinates: z.object({ lat: z.number(), lng: z.number() }),
@@ -31,6 +32,7 @@ export const userAuthResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
   email: z.string(),
+  role: z.enum(["DRIVER", "INSTRUCTOR"]),
   accessToken: z.string(),
 });
 
@@ -61,7 +63,8 @@ export const userResponseSchema = z.object({
       latitude: z.number().nullable(),
       longitude: z.number().nullable(),
       hasVehicle: z.boolean(),
-      vehicleType: z.any(),
+      vehicleCategories: z.any(),
+      teachingCategories: z.array(z.number()),
       rating: z.number(),
     })
     .nullable(),
@@ -74,14 +77,14 @@ export const updateUserSchema = z.object({
   state: z.string().optional(),
   gender: z.enum(["MALE", "FEMALE"]).optional(),
   photo: z.string().optional(),
-  priceHour: z.number().optional(),
+  priceHour: z.number().max(1000).optional(),
   bio: z.string().optional(),
   cnh: z.string().optional(),
   active: z.boolean().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
-  hasVehicle: z.boolean().optional(),
-  vehicleType: z.array(z.number()).optional(),
+  vehicleCategories: z.array(z.number()).optional(),
+  teachingCategories: z.array(z.number()).optional(),
   rating: z.number().optional(),
   rangeKm: z.number().optional(),
 });

@@ -57,6 +57,15 @@ export const getMeUserRepository = async (userId: number) => {
           longitude: true,
           rangeKm: true,
           hasVehicle: true,
+          instructorCategories: {
+            select: {
+              licenseCategory: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
           instructorVehicles: {
             select: {
               vehicleType: {
@@ -97,11 +106,11 @@ export const updateUserRepository = async (
     active?: boolean;
     latitude?: number;
     longitude?: number;
-    hasVehicle?: boolean;
-    vehicleType?: number[];
+    vehicleCategories?: number[];
+    teachingCategories?: number[];
     rating?: number;
     rangeKm?: number;
-  }
+  },
 ) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -130,6 +139,9 @@ export const updateUserRepository = async (
   }
 
   if (user.role === "INSTRUCTOR" && instructorData) {
+    // Derive hasVehicle from vehicleCategories
+    const hasVehicle = instructorData.vehicleCategories !== undefined ? instructorData.vehicleCategories.length > 0 : undefined;
+
     updateData.instructor = {
       update: {
         ...(instructorData.priceHour !== undefined && { priceHour: instructorData.priceHour }),
@@ -140,14 +152,20 @@ export const updateUserRepository = async (
         ...(instructorData.longitude !== undefined && { longitude: instructorData.longitude }),
         ...(instructorData.rating !== undefined && { rating: instructorData.rating }),
         ...(instructorData.rangeKm !== undefined && { rangeKm: instructorData.rangeKm }),
-        ...(instructorData.hasVehicle !== undefined && { hasVehicle: instructorData.hasVehicle }),
-
-        // ✅ FIXED PART
-        ...(instructorData.vehicleType !== undefined && {
+        ...(hasVehicle !== undefined && { hasVehicle }),
+        ...(instructorData.vehicleCategories !== undefined && {
           instructorVehicles: {
-            deleteMany: {}, // remove all existing
-            create: instructorData.vehicleType.map((id: number) => ({
+            deleteMany: {},
+            create: instructorData.vehicleCategories.map((id: number) => ({
               vehicleTypeId: id,
+            })),
+          },
+        }),
+        ...(instructorData.teachingCategories !== undefined && {
+          instructorCategories: {
+            deleteMany: {},
+            create: instructorData.teachingCategories.map((id: number) => ({
+              categoryId: id,
             })),
           },
         }),
@@ -187,6 +205,15 @@ export const updateUserRepository = async (
           rating: true,
           rangeKm: true,
           hasVehicle: true,
+          instructorCategories: {
+            select: {
+              licenseCategory: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
           instructorVehicles: {
             select: {
               vehicleType: {

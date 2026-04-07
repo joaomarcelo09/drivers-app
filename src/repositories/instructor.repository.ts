@@ -10,25 +10,25 @@ export const createInstructorRespository = async (body: any, userId: number, tx?
       active: true,
       priceHour: body.priceHour,
       cnh: body.cnh,
-      hasVehicle: body.hasVehicle,
+      hasVehicle: (body.vehicleCategories?.length ?? 0) > 0,
       rating: body.rating,
       latitude: body.coordinates.lat,
       longitude: body.coordinates.lng,
       bio: body.bio,
       rangeKm: body.rangeKm || 0,
-      instructorCategories: body.categoriesId?.length
+      instructorCategories: body.teachingCategories?.length
         ? {
             createMany: {
-              data: body.categoriesId.map((id: number) => ({
+              data: body.teachingCategories.map((id: number) => ({
                 categoryId: id,
               })),
             },
           }
         : undefined,
-      instructorVehicles: body.vehicleType?.length
+      instructorVehicles: body.vehicleCategories?.length
         ? {
             createMany: {
-              data: body.vehicleType.map((id: number) => ({
+              data: body.vehicleCategories.map((id: number) => ({
                 vehicleTypeId: id,
               })),
             },

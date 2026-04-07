@@ -15,6 +15,25 @@ import {
 import { UserRegisterInput } from "../types/registerInput";
 import { randomBytes } from "crypto";
 
+const normalizeInstructorRelations = (user: any) => {
+  if (!user?.instructor) {
+    return user;
+  }
+
+  const { instructorCategories, instructorVehicles, ...instructorData } = user.instructor;
+
+  const vehicleCategories = instructorVehicles?.map((iv: any) => iv.vehicleType?.id) || [];
+
+  user.instructor = {
+    ...instructorData,
+    teachingCategories: instructorCategories?.map((ic: any) => ic.licenseCategory?.id) || [],
+    vehicleCategories,
+    hasVehicle: vehicleCategories.length > 0,
+  };
+
+  return user;
+};
+
 export const createUser = async (body: UserRegisterInput) => {
   const confirmationToken = randomBytes(32).toString("hex");
 
@@ -42,15 +61,7 @@ export const getUser = async (where: UserWhereInput) => {
 export const getMeUser = async (userId: number) => {
   const user = await getMeUserRepository(userId);
 
-  if (user?.instructor) {
-    const { instructorVehicles, ...instructorData } = user.instructor;
-    (user as any).instructor = {
-      ...instructorData,
-      vehicleType: instructorVehicles?.map((iv: any) => iv.vehicleType?.id) || [],
-    };
-  }
-
-  return user;
+  return normalizeInstructorRelations(user);
 };
 
 export const updateUser = async (
@@ -73,13 +84,15 @@ export const updateUser = async (
     active?: boolean;
     latitude?: number;
     longitude?: number;
-    hasVehicle?: boolean;
-    vehicleType?: number[];
+    vehicleCategories?: number[];
+    teachingCategories?: number[];
     rating?: number;
     rangeKm?: number;
   },
 ) => {
-  return await updateUserRepository(userId, userData, driverData, instructorData);
+  const user = await updateUserRepository(userId, userData, driverData, instructorData);
+
+  return normalizeInstructorRelations(user);
 };
 
 export const updateRefreshToken = async (userId: number, refreshToken: string) => {

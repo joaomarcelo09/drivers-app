@@ -12,7 +12,8 @@ const globalForPrisma = globalThis as typeof globalThis & {
 
 // Named export with global memoization
 export const prisma: PrismaClient =
-  globalForPrisma.prisma ?? new PrismaClient({
+  globalForPrisma.prisma ??
+  new PrismaClient({
     adapter,
   });
 

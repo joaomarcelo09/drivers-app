@@ -55,14 +55,16 @@ const normalizeInstructorRegistrationBody = (body: Request["body"]) => {
           lng: Number(body?.coordinates?.lng),
         };
 
+  const vehicleCategories = parseJsonArray(body.vehicleCategories).map(Number);
+
   return {
     ...body,
     gender: typeof body.gender === "string" ? body.gender.toUpperCase() : body.gender,
-    categoriesId: parseJsonArray(body.categoriesId).map(Number),
+    teachingCategories: parseJsonArray(body.teachingCategories).map(Number),
     priceHour: Number(body.priceHour),
     rangeKm: Number(body.rangeKm),
-    hasVehicle: body.hasVehicle === "true" || body.hasVehicle === true,
-    vehicleType: parseJsonArray(body.vehicleType).map(Number),
+    hasVehicle: vehicleCategories.length > 0,
+    vehicleCategories,
     coordinates: {
       lat: Number(coordinates.lat),
       lng: Number(coordinates.lng),
@@ -374,8 +376,11 @@ router.post(
  *         content:
  *           application/json:
  *             schema:
- *               type: string
- *               example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *       401:
  *         description: Refresh token missing or invalid
  */
@@ -399,9 +404,9 @@ router.get("/refresh-token", async (req: Request, res: Response, next: NextFunct
       throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Refresh token inválido ou expirado" });
     }
 
-    const access_token = generateToken(user.id, user.name);
+    const accessToken = generateToken(user.id, user.name);
 
-    res.json(access_token);
+    res.json({ accessToken });
   } catch (error) {
     next(error);
   }
