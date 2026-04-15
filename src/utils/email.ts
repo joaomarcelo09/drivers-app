@@ -68,15 +68,6 @@ export const sendPasswordResetEmail = async (email: string, name: string, resetT
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .button {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #1565c0;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-          }
         </style>
       </head>
       <body>
@@ -84,7 +75,7 @@ export const sendPasswordResetEmail = async (email: string, name: string, resetT
           <h2>Olá, ${name}!</h2>
           <p>Recebemos uma solicitação para redefinir a senha da sua conta no DriveApp.</p>
           <p>Clique no botão abaixo para criar uma nova senha:</p>
-          <a href="${resetUrl}" class="button">Redefinir Senha</a>
+          <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #1565c0; color: #ffffff; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold;">Redefinir Senha</a>
           <p>Se o botão não funcionar, copie e cole o seguinte link no seu navegador:</p>
           <p>${resetUrl}</p>
           <p>Este link expira em 1 hora.</p>
