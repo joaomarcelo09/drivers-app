@@ -270,3 +270,33 @@ export const getUserByConfirmationTokenRepository = async (confirmationToken: st
     where: { confirmationToken },
   });
 };
+
+export const setPasswordResetTokenRepository = async (userId: number, token: string, expires: Date) => {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { passwordResetToken: token, passwordResetExpires: expires },
+  });
+};
+
+export const getUserByPasswordResetTokenRepository = async (token: string) => {
+  return await prisma.user.findFirst({
+    where: {
+      passwordResetToken: token,
+      passwordResetExpires: { gt: new Date() },
+    },
+  });
+};
+
+export const clearPasswordResetTokenRepository = async (userId: number) => {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { passwordResetToken: null, passwordResetExpires: null },
+  });
+};
+
+export const updatePasswordRepository = async (userId: number, hashedPassword: string) => {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { password: hashedPassword },
+  });
+};

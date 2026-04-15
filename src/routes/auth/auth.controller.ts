@@ -1,6 +1,13 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { validateData } from "../../middleware/validationMiddleware";
-import { driverRegistrationSchema, instructorRegistrationSchema, userAuthResponseSchema, userLoginSchema } from "../../schemas/userSchema";
+import {
+  driverRegistrationSchema,
+  instructorRegistrationSchema,
+  userAuthResponseSchema,
+  userLoginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "../../schemas/userSchema";
 import authMiddleware from "../../middleware/securityMiddleware";
 import { generateRefreshToken, generateToken, validateRefreshToken } from "../../utils/generateToken";
 import {
@@ -10,6 +17,8 @@ import {
   getUserByIdWithRefreshToken,
   confirmUserEmail,
   getUserByConfirmationToken,
+  requestPasswordReset,
+  resetPassword,
 } from "../../services/user.service";
 import { comparePassword, hashPassword } from "../../utils/bcrypt";
 import { sendConfirmationEmail } from "../../utils/email";
@@ -493,6 +502,78 @@ router.get("/confirm-email", async (req: Request, res: Response, next: NextFunct
 
     const response = userAuthResponseSchema.parse({ ...user, accessToken });
     res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Request a password reset email
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: If the email exists, a reset link will be sent
+ */
+router.post("/forgot-password", validateData(forgotPasswordSchema), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await requestPasswordReset(req.body.email);
+    // Always return 200 to prevent user enumeration
+    res.json({ message: "Se o email estiver cadastrado, você receberá um link de redefinição de senha." });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset user password using a reset token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - password
+ *             properties:
+ *               token:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *       400:
+ *         description: Token invalid or expired
+ */
+router.post("/reset-password", validateData(resetPasswordSchema), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await resetPassword(req.body.token, req.body.password);
+
+    if (!user) {
+      throw new HttpException(StatusCodes.BAD_REQUEST, { error: "Token inválido ou expirado" });
+    }
+
+    res.json({ message: "Senha redefinida com sucesso!" });
   } catch (error) {
     next(error);
   }

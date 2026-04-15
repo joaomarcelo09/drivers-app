@@ -88,3 +88,12 @@ export const updateUserSchema = z.object({
   rating: z.number().optional(),
   rangeKm: z.number().optional(),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z.email(),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
+});

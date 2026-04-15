@@ -11,9 +11,15 @@ import {
   getUserByIdWithRefreshTokenRepository,
   confirmUserEmailRepository,
   getUserByConfirmationTokenRepository,
+  setPasswordResetTokenRepository,
+  getUserByPasswordResetTokenRepository,
+  clearPasswordResetTokenRepository,
+  updatePasswordRepository,
 } from "../repositories/user.repository";
 import { UserRegisterInput } from "../types/registerInput";
 import { randomBytes } from "crypto";
+import { sendConfirmationEmail, sendPasswordResetEmail } from "../utils/email";
+import { hashPassword } from "../utils/bcrypt";
 
 const normalizeInstructorRelations = (user: any) => {
   if (!user?.instructor) {
@@ -115,4 +121,33 @@ export const confirmUserEmail = async (confirmationToken: string) => {
 
 export const getUserByConfirmationToken = async (confirmationToken: string) => {
   return await getUserByConfirmationTokenRepository(confirmationToken);
+};
+
+export const requestPasswordReset = async (email: string) => {
+  const user = await getUserRepository({ email });
+
+  // Always resolve successfully to prevent user enumeration
+  if (!user || !user.isConfirmed) {
+    return;
+  }
+
+  const resetToken = randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  await setPasswordResetTokenRepository(user.id, resetToken, expires);
+  await sendPasswordResetEmail(user.email, user.name, resetToken);
+};
+
+export const resetPassword = async (token: string, newPassword: string) => {
+  const user = await getUserByPasswordResetTokenRepository(token);
+
+  if (!user) {
+    return null;
+  }
+
+  const hashed = await hashPassword(newPassword);
+  await updatePasswordRepository(user.id, hashed);
+  await clearPasswordResetTokenRepository(user.id);
+
+  return user;
 };

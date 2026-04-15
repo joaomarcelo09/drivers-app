@@ -24,9 +24,11 @@ model User {
   gender            Gender      @default(MALE)
   city              String      @default("")
   state             String      @default("")
-  refreshToken      String?     @default("")
-  confirmationToken String?
-  isConfirmed       Boolean     @default(false)
+  refreshToken          String?     @default("")
+  confirmationToken     String?
+  isConfirmed           Boolean     @default(false)
+  passwordResetToken    String?
+  passwordResetExpires  DateTime?
   createdAt         DateTime    @default(now())
   instructor        Instructor?
   driver            Driver?
