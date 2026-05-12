@@ -27,7 +27,7 @@ router.get("/me", async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.auth?.user?.id;
 
     if (!userId) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Unauthorized" });
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "UNAUTHORIZED", "Unauthorized");
     }
 
     const user = await getMeUser(userId);
@@ -96,7 +96,7 @@ router.put("/me", async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.auth?.user?.id;
 
     if (!userId) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Unauthorized" });
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "UNAUTHORIZED", "Unauthorized");
     }
 
     const data = updateUserSchema.parse(req.body);

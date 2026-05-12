@@ -15,9 +15,7 @@ const getFirebaseApp = () => {
   const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
 
   if (!projectId || !clientEmail || !privateKey || !storageBucket) {
-    throw new HttpException(StatusCodes.INTERNAL_SERVER_ERROR, {
-      error: "Firebase Storage não está configurado corretamente",
-    });
+    throw new HttpException(StatusCodes.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Firebase Storage não está configurado corretamente");
   }
 
   return admin.initializeApp({

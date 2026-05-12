@@ -12,7 +12,7 @@ export const photoUploadMiddleware = multer({
   },
   fileFilter: (_req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
-      cb(new HttpException(StatusCodes.BAD_REQUEST, { error: "O arquivo enviado deve ser uma imagem" }));
+      cb(new HttpException(StatusCodes.BAD_REQUEST, "BAD_REQUEST", "O arquivo enviado deve ser uma imagem"));
       return;
     }
 

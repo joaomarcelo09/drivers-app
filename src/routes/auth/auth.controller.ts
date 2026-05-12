@@ -22,7 +22,7 @@ import {
 } from "../../services/user.service";
 import { comparePassword, hashPassword } from "../../utils/bcrypt";
 import { sendConfirmationEmail } from "../../utils/email";
-import { BAD_REQUEST, StatusCodes } from "http-status-codes";
+import { StatusCodes } from "http-status-codes";
 import HttpException from "../../models/http-exception.model";
 import { photoUploadMiddleware } from "../../middleware/uploadMiddleware";
 import { uploadUserPhoto } from "../../utils/firebaseStorage";
@@ -140,18 +140,18 @@ router.post("/login", validateData(userLoginSchema), async (req: Request, res: R
     const user = await getUser({ email: req.body.email });
 
     if (!user) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Usuário não encontrado" });
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "UNAUTHORIZED", "Usuário não encontrado");
     }
 
     // Check if email is confirmed
     if (!user.isConfirmed) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Por favor, confirme seu email antes de fazer login" });
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "UNAUTHORIZED", "Por favor, confirme seu email antes de fazer login");
     }
 
     const passwordMatch = await comparePassword(req.body.password, user.password);
 
     if (!passwordMatch) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Usuário ou senha inválidos" });
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "UNAUTHORIZED", "Usuário ou senha inválidos");
     }
 
     const accessToken = generateToken(user.id, user.name);
@@ -243,7 +243,7 @@ router.post(
       const existingUser = await getUser({ email: req.body.email });
 
       if (existingUser) {
-        throw new HttpException(BAD_REQUEST, { error: "Usuário existente com esse email" });
+        throw new HttpException(StatusCodes.BAD_REQUEST, "BAD_REQUEST", "Usuário existente com esse email");
       }
 
       req.body.password = await hashPassword(req.body.password);
@@ -339,11 +339,11 @@ router.post(
       const existingUser = await getUser({ email: req.body.email });
 
       if (existingUser) {
-        throw new HttpException(BAD_REQUEST, { error: "Usuário existente com esse email" });
+        throw new HttpException(StatusCodes.BAD_REQUEST, "BAD_REQUEST", "Usuário existente com esse email");
       }
 
       if (!req.file) {
-        throw new HttpException(BAD_REQUEST, { error: "A foto do usuário é obrigatória" });
+        throw new HttpException(StatusCodes.BAD_REQUEST, "BAD_REQUEST", "A foto do usuário é obrigatória");
       }
 
       req.body.password = await hashPassword(req.body.password);
@@ -398,19 +398,19 @@ router.get("/refresh-token", async (req: Request, res: Response, next: NextFunct
     const refresh_token = req.cookies.refresh_token;
 
     if (!refresh_token) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Refresh token não encontrado" });
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "UNAUTHORIZED", "Refresh token não encontrado");
     }
 
     const { user } = validateRefreshToken(refresh_token);
 
     if (!user?.id || !user?.name) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Refresh token inválido" });
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "UNAUTHORIZED", "Refresh token inválido");
     }
 
     const dbUser = await getUserByIdWithRefreshToken(user.id);
 
     if (!dbUser || dbUser.refreshToken !== refresh_token) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, { error: "Refresh token inválido ou expirado" });
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "UNAUTHORIZED", "Refresh token inválido ou expirado");
     }
 
     const accessToken = generateToken(user.id, user.name);
@@ -477,13 +477,13 @@ router.get("/confirm-email", async (req: Request, res: Response, next: NextFunct
     const token = req.query.token as string;
 
     if (!token) {
-      throw new HttpException(StatusCodes.BAD_REQUEST, { error: "Token de confirmação não fornecido" });
+      throw new HttpException(StatusCodes.BAD_REQUEST, "BAD_REQUEST", "Token de confirmação não fornecido");
     }
 
     const user = await getUserByConfirmationToken(token);
 
     if (!user) {
-      throw new HttpException(StatusCodes.BAD_REQUEST, { error: "Token de confirmação inválido ou expirado" });
+      throw new HttpException(StatusCodes.BAD_REQUEST, "BAD_REQUEST", "Token de confirmação inválido ou expirado");
     }
 
     await confirmUserEmail(token);
@@ -570,7 +570,7 @@ router.post("/reset-password", validateData(resetPasswordSchema), async (req: Re
     const user = await resetPassword(req.body.token, req.body.password);
 
     if (!user) {
-      throw new HttpException(StatusCodes.BAD_REQUEST, { error: "Token inválido ou expirado" });
+      throw new HttpException(StatusCodes.BAD_REQUEST, "BAD_REQUEST", "Token inválido ou expirado");
     }
 
     res.json({ message: "Senha redefinida com sucesso!" });

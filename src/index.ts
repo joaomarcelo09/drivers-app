@@ -38,29 +38,29 @@ app.get("/", (req: express.Request, res: express.Response) => {
 
 /* eslint-disable */
 app.use((err: Error | HttpException, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  // @ts-ignore
-  if (err && err.name === "UnauthorizedError") {
-    return res.status(401).json({
-      status: "error",
-      error: "missing authorization credentials",
+  if (err instanceof HttpException) {
+    return res.status(err.statusCode).json({
+      code: err.code,
+      message: err.message,
+      ...(err.details !== undefined && { details: err.details }),
     });
-    // @ts-ignore
-  } else if (err && err.errorCode) {
-    // @ts-ignore
-    const status = err.errorCode;
-    // @ts-ignore
-    const message = err.message;
-    // Handle object format { error: "..." } or string format
-    if (typeof message === "object" && message !== null && "error" in message) {
-      res.status(status).json(message);
-    } else if (typeof message === "object" && message !== null) {
-      res.status(status).json(message);
-    } else {
-      res.status(status).json({ error: message });
-    }
-  } else if (err) {
-    res.status(500).json(err.message);
   }
+
+  // express-jwt unauthorized errors
+  // @ts-ignore
+  if (err?.name === "UnauthorizedError") {
+    return res.status(401).json({
+      code: "UNAUTHORIZED",
+      message: "Credenciais de autorização ausentes",
+    });
+  }
+
+  // Unexpected server errors — do not leak internal details to the client
+  console.error("[INTERNAL_ERROR]", err);
+  return res.status(500).json({
+    code: "INTERNAL_ERROR",
+    message: "Erro interno do servidor",
+  });
 });
 
 /**
