@@ -5,6 +5,7 @@ RUN npm install -g tsx
 
 FROM base AS builder
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY prisma.config.ts ./
 COPY prisma prisma/
 COPY tsconfig.json ./
 COPY src src/
@@ -21,8 +22,9 @@ COPY --from=builder /app/node_modules /app/node_modules
 COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/generated /app/generated
 COPY --from=builder /app/prisma /app/prisma
+COPY --from=builder /app/prisma.config.ts /app/prisma.config.ts
 COPY --from=builder /app/package.json /app/
 
 USER appuser
 EXPOSE 8080
-CMD ["sh", "-c", "pnpm prisma migrate deploy && tsx dist/src/index.js"]
+CMD ["sh", "-c", "pnpm prisma migrate deploy --config=prisma.config.ts && tsx dist/src/index.js"]

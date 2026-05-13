@@ -14,7 +14,7 @@ const app = express();
  * Initialize PostHog if API key is configured
  */
 if (process.env.POSTHOG_API_KEY) {
-  initializePostHog(process.env.POSTHOG_API_KEY, 'https://us.i.posthog.com');
+  initializePostHog(process.env.POSTHOG_API_KEY, "https://us.i.posthog.com");
   console.info("PostHog analytics initialized");
 } else {
   console.warn("POSTHOG_API_KEY not configured - analytics disabled");
